@@ -1,0 +1,25 @@
+// gka_averager.hoc
+// this script averages gka for both the proximal and distal forms of the current and
+// reports the average value
+
+cumulative_area=0
+cumulative_gka=0
+
+forall {
+  if (ismembrane("kap") || ismembrane("kad")) {
+    for (x) {
+      if (area(x)) {
+        cumulative_area += area(x)
+        if (ismembrane("kap")) {
+          cumulative_gka += area(x)*gkabar_kap(x)
+        }
+        if (ismembrane("kad")) {
+          cumulative_gka += area(x)*gkabar_kad(x)
+        }
+      }
+    }
+  }
+}
+
+average_gka = cumulative_gka/cumulative_area
+print "average A-type conductance is ",average_gka

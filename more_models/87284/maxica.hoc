@@ -1,0 +1,287 @@
+/*
+The RangeVarPlots of imax_caquant are treated specially:
+1.  they are appended to rvplist so that their x and y values can be saved to pairs of vectors
+2.  their paths are captured to a List of SectionLists to assist with future tasks, e.g.
+drawing dots at locations of particular features
+
+Revised so that black--the path that runs through the tuft--is on top.
+Then come the paths into prox, intermed, and distal obliques, in that order.
+*/
+
+objref caquant_graphs[5] // used for referencing 5 relevant graphs to fig 6
+
+// objref rvplist, list_of_seclists
+objref rvplist
+rvplist = new List()
+// list_of_seclists = new List()
+objref proxsl, intermedsl, distsl, tuftsl // mnemonic names for SectionLists
+
+proc append_to_lists() {
+  rvplist.append($o1)
+  $o2 = new SectionList()
+  $o1.list($o2)
+}
+
+
+objectvar save_window_, rvp_
+objectvar scene_vector_[15]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,-0.004,2.32831e-10)
+scene_vector_[10] = save_window_
+{save_window_.view(0, -0.004, 900, 0.004, 766, 25, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+
+/*
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.611502, 0.559744)
+append_to_lists(rvp_, tuftsl)
+*/
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 7, 1, 0.611502, 0.516613)
+append_to_lists(rvp_, distsl)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.598722, 0.478275)
+append_to_lists(rvp_, intermedsl)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.582748, 0.435144)
+append_to_lists(rvp_, proxsl)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.611502, 0.559744)
+append_to_lists(rvp_, tuftsl)
+caquant_graphs[0]=save_window_
+}
+
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,0,5)
+scene_vector_[11] = save_window_
+{save_window_.view(0, 0, 900, 5, 766, 289, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+
+/*
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.173802, 0.976678)
+*/
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 7, 1, 0.176997, 0.981469)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.170607, 0.995847)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.192972, 1.01502)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.173802, 0.976678)
+caquant_graphs[1]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,0,0.0005)
+scene_vector_[12] = save_window_
+{save_window_.view(0, 0, 900, 0.0005, 439, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+
+/*
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.585943, 0.943131)
+*/
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 7, 1, 0.589138, 0.943131)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.589137, 0.943131)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.589137, 0.938338)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.585943, 0.943131)
+caquant_graphs[2]=save_window_}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,0,8)
+scene_vector_[13] = save_window_
+{save_window_.view(0, 0, 900, 8, 766, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+
+/*
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.64345, 0.588498)
+*/
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 7, 1, 0.643451, 0.583706)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.64345, 0.578914)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.637061, 0.569329)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.64345, 0.588498)
+caquant_graphs[3]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,0,0.0005)
+scene_vector_[14] = save_window_
+{save_window_.view(0, 0, 900, 0.0005, 1093, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+
+/*
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.410224, 0.919169)
+*/
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 7, 1, 0.407029, 0.904792)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.400639, 0.885623)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.400639, 0.871246)
+
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 1, 1, 0.410224, 0.919169)
+caquant_graphs[4]=save_window_
+}
+objectvar scene_vector_[1]
+{doNotify()}
+
+
+objref shlist // list of Shape plots that show the paths
+
+/*
+generate Shape plots that show the paths that correspond to the RangeVarPlots
+requires maxica.hoc to have been loaded so that these SectionLists exist:
+proxsl, intermedsl, distsl, tuftsl
+*/
+proc pathshapes() { local ii  localobj tobj, tsl
+  shlist = new List()
+  for ii=0,rvplist.count()-1 { // iterate over the list of RVPs
+    tsl = new SectionList()
+    rvplist.o(ii).list(tsl) // get section list
+    tobj = new Shape(0) // create and size a new Shape
+    tobj.size(-10,740,-429.402,319.402)
+    tobj.view(-10, -429.402, 750, 748.804, 7+100*(ii+1), 105+100*(ii+1), 200.64, 200.32)
+    tobj.observe(tsl) // display only what's in the RVP's SectionList
+    shlist.append(tobj) // save for future use
+  }
+}

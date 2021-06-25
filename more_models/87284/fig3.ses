@@ -1,0 +1,54 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[14]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{
+save_window_ = new PlotShape(0)
+save_window_.size(-270,740,-333.254,513.254)
+save_window_.variable("v")
+scene_vector_[8] = save_window_
+{save_window_.view(-270, -333.254, 1010, 846.507, 592, 155, 600, 503.68)}
+}
+{
+save_window_ = new PlotShape(0)
+save_window_.size(-221.531,690.229,-199.643,380.303)
+save_window_.variable("v")
+scene_vector_[12] = save_window_
+{save_window_.view(-221.531, -199.643, 911.759, 579.946, 287, 612, 501.12, 317.44)}
+fast_flush_list.append(save_window_)
+save_window_.save_name("fast_flush_list.")
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,900,-80,40)
+scene_vector_[13] = save_window_
+{save_window_.view(0, -80, 900, 120, 414, 63, 471.36, 256.96)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+apic[0] rvp_.begin(0)
+apic[43] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+apic[0] rvp_.begin(0)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+apic[0] rvp_.begin(0)
+apic[76] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("v")
+apic[0] rvp_.begin(0)
+apic[121] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 1, 0.8, 0.9)
+}
+objectvar scene_vector_[1]
+{doNotify()}

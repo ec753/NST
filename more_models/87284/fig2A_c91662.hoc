@@ -1,0 +1,167 @@
+// fig2A_c91662.hoc
+// modified from fig2A.hoc from Migliore et al 2005 oblique model
+// http://senselab.med.yale.edu/modeldb/showmodel.asp?model=55035
+// to replace original model's default cell with c91662
+
+{load_file("nrngui.hoc")}
+// {cvode_active(1)} // uncomment for cvode however cvode incompat. for calcium analysis
+
+numaxon=1
+numsoma=1
+numbasal=52
+numapical=70
+numtrunk=49
+
+// xopen("geo5038804.hoc")             // geometry file for default cell
+{xopen("c91662.ses")}  // a cell thats shape is similar to the one in Chen C et al. 2005
+{load_file("obliques_primary_tuft.hoc")} // defines SectionLists
+{xopen("fixnseg.hoc")}
+
+// Omori et al. 2009 define a step function for Rm that is a high resistance, RmDend near
+// the soma and then 350 +- 100 microns from the soma drops to 1/10 that value, RmDistalDend
+Rm = 10^4.5 // 31622  lower limit from Omori et al. 2009, Michele's original value: 28000  // ohm cm2
+RmDend = Rm
+RmDistalDend = 10^3.5 // 3162.2 upper limit from Omori et al. 2009.
+// Rm for Omori et al. 2006 value ~900 ohm cm2 (some value less than 1000)
+// note also that pressing the leaky dendrites button now makes the model like Omori et
+// al. 2009's paper range limits for Rm in a step distribution.
+RmSoma = Rm
+RmAx = Rm
+{load_file("leaky_distal.hoc")} // procedures make_leaky_distal_Rm(), make_const_dend_Rm()
+Cm    = 1
+CmSoma= Cm
+CmAx  = Cm
+CmDend = Cm
+
+RaAll= 150
+RaSoma=150  
+RaAx = 50
+
+Vrest = -65
+// now handled in paper....hoc: dt = 0.025 // dt =0.1 is OK for demo
+gna =  .025
+AXONM = 5
+gkdr = 0.01
+celsius = 35.0  
+KMULT =  0.03 // Michele suggests that changing these to 0.04 from 0.03
+KMULTP = 0.03 // is within the physiological range
+ghd=0.00005
+
+// the below 2 get reset later but must be defined to show up in gui text editors
+gc=0  // used for setting the T, L, and N Ca2+ currents max conductance
+gKc=0 // used for setting the Ca2+ sensitive K current max conductance
+gt=0  // used for setting the T-type Ca current max cond. to a particular value
+
+alzheimers_flag=0 // flag turns true when simulating alzheimers
+current_marker_color=3 // starts out blue (3), red is 2
+apic_resize_factor=1 // default value doesn't change anything, 10, 1/10 typical choices
+apic_comp_index=0 // selects in text box which compartment is specifically changed, 0-128 valid choices
+marker_graph=1 // 1 for marker graphs
+line_graph=1 // 1 for line graphs
+strdef current_marker_style
+current_marker_style="O"
+current_marker_size=3
+current_cai_marker=3 // peak internal Ca2+ concentration graphs:  3=triangle 2=square
+current_cai_marker_color=1 // 1=black, 2=red
+aBeta_concentration_factor=1 // this is used to model smaller concentrations of aBeta
+			     // than were measured experimentally.  The assumption is
+// that the blocking due to a smaller value of aBeta would be linearly proportional to
+// the full blocking as a factor of the ratio of the model concentration divided by the
+// experimentally measured concentration (1 uM aBeta).
+scale_ka=1 // used to scale the A-type current gmax's in the Migliore distribution
+scale_obliques=1 // used to scale the A-type current gmax's on the relative distrib. in the obliq.s
+objref g, b1, b2, c, d, stim, distrx, distry, distrt, cdistry
+objref peak_ca_graph, peak_optical_graph
+
+objref distrca, distr_cai_t // store the maximum cai values and times those max's occurred
+objref tmp_vecx, tmp_vecy
+objref b3
+objref obliquex, obliquey, primaryx, primaryy, tuftx, tufty
+objref obliqueca, primaryca, tuftca
+objref obliqueoptical, primaryoptical, tuftoptical
+objref p, chen_c_bpAP_peaks
+objref soma_v_vec, dend_v_vec
+objref obdend_v_vec, healthy_obdend_v_vec, abeta_obdend_v_vec
+
+forsec "axon" {insert pas e_pas=Vrest g_pas = 1/RmAx Ra=RaAx cm=CmAx}
+forsec "soma" {insert pas e_pas=Vrest g_pas = 1/RmSoma Ra=RaSoma cm=CmSoma}
+
+// the union of dendrites in dendrite and user5 in the original model are
+// analagous to the union of the dendrites in basal and apic in c91662
+
+// forsec "dendrite" {insert pas e_pas=Vrest g_pas = 1/RmDend Ra=RaAll cm=CmDend}
+forsec "basal" {insert pas e_pas=Vrest g_pas = 1/RmDend Ra=RaAll cm=CmDend}
+// forsec "user5" {insert pas e_pas=Vrest g_pas = 1/RmDend Ra=RaAll cm=CmDend}
+forsec "apic" {insert pas e_pas=Vrest g_pas = 1/RmDend Ra=RaAll cm=CmDend}
+
+access soma
+
+freq=50
+geom_nseg()
+// chance here to change the nseg for compartments if want to study effect of that
+// high resolution for middle oblique of interest:
+
+
+// for apicindex=73,79 {
+//  apic[apicindex] nseg*=27
+
+//forall { nseg*=27 }
+/**/
+
+tot=0
+forall {tot=tot+nseg}
+distance()  // establishes soma (still accessed) as origin for distance(x) function
+
+tstop=20
+
+load_file("control_boxes.hoc")
+
+p = new PlotShape()
+p.exec_menu("Shape Plot")
+p.size(-194.658,304.758,-223.667,609.667)
+p.variable("v")
+p.show(0)
+
+rel=0.5
+soma {
+  stim= new IClamp(rel)
+  stim.amp=0 // was 2.5 in original Migliore et al. 2005 model
+  stim.dur=1.5
+  stim.del=1
+}
+axon {
+  stim= new IClamp(1)
+  stim.amp=.1  // just a short small pulse is all that is neces. in axon to start bAP
+  stim.dur=.2
+  stim.del=0  // start stimulus right away since takes a little while to prop. to soma
+}
+axon { pt3dchange(0,1) } // change the diameter to 1 um prox to soma to match impedance for bAP
+
+{load_file("distribute_currents.hoc")}
+{load_file("init_and_run_and_graph.hoc")}
+{load_file("aBeta.hoc")} // aBeta.hoc must be loaded after the cell is created
+{load_file("shrink_obliques.hoc")} // electrically remove obliques
+{load_file("oblique_scaled_ka.hoc")}
+store_healthy_g_A() // store A current conductances for healthy cell.
+
+// compare between healthy and aBeta applied cells backpropagating action potentials
+objref healthy_bpAPs, aBeta_bpAPs
+// note that the above stored peak voltages are aligned with the distrx vectors which
+// contain the distance from the soma to the apical dendrite
+objref percent_increase, experiment_indicies, per_inc_between_240_300, x_between_240_300
+// experiment_indicies hold the indicies of distr(x or y) that correspond to the range
+// that Chen C measured increases in bpAPs
+objref g1
+
+{load_file("figs.hoc")}  // contains procedures to create figures for Dend. Hypoth. paper
+
+scale_ka=1  // throughout the whole cell
+scale_obliques=3 // use 3 times ka slope in the obliques in standard model for this study
+assign_relative_ka()
+
+store_healthy_g_A()  // reassign this distribution as the healthy (control) one.
+
+load_file("generate_conc_graph.hoc") // contains procs for concentration dependence study
+load_file("oblique_application.hoc") // graphs comparison between oblique aBeta and control
+load_file("bAP_peak_vecs.hoc")
+

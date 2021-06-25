@@ -1,0 +1,481 @@
+// In this model the application of aBeta is done by adjusting the max conductance of the
+// transient A current in the dendrites and soma by the same values as measured by Chen.
+
+objref basal_gkap_healthy,basal_gkad_healthy
+objref soma_gkap_healthy	// there is only proximal A current in soma
+objref apic_gkap_healthy,apic_gkad_healthy
+strdef tmp, tmp1
+basal_gkap_healthy = new Vector()
+basal_gkad_healthy = new Vector()
+soma_gkap_healthy = new Vector()
+apic_gkap_healthy = new Vector()
+apic_gkad_healthy = new Vector()
+
+pt3dconst(1) // sets 3dpts diameters as authoritative
+// pt3dconst(0) // sets nseg diameters as authoritative
+
+proc store_healthy_g_A() {
+// the normal A current conductances are stored so they can be restored when running simulations
+// that require several modifications of the healthy configuration
+//		forsec "basal" {if (ismembrane("kap")) {gkabar_kap *= (1-.465)}}
+	basal_gkap_healthy = new Vector()
+	basal_gkad_healthy = new Vector()
+	soma_gkap_healthy = new Vector()
+	apic_gkap_healthy = new Vector()
+	apic_gkad_healthy = new Vector()
+	// store proximal, distal A-type current values at each spatial location, x, in each section
+	i=0
+	forsec "basal" {
+	    sprint(tmp,"%s",secname())
+	    for (x) {
+		sprint(tmp1, \
+		    "if (ismembrane(\"kap\")) { basal_gkap_healthy.append(%s.gkabar_kap(x)) }",tmp)
+		execute(tmp1)
+		sprint(tmp1, \
+		    "if (ismembrane(\"kad\")) { basal_gkad_healthy.append(%s.gkabar_kad(x)) }",tmp)
+		execute(tmp1)
+		i += 1
+	    }
+	}
+	// store apical dendrite values
+	i=0
+	forsec "apic" {
+	    sprint(tmp,"%s",secname())
+	    for (x) {
+		sprint(tmp1, \
+		    "if (ismembrane(\"kap\")) { apic_gkap_healthy.append(%s.gkabar_kap(x)) }", tmp)
+		execute(tmp1)
+		sprint(tmp1, \
+		    "if (ismembrane(\"kad\")) { apic_gkad_healthy.append(%s.gkabar_kad(x)) }", tmp)
+		execute(tmp1)
+		i += 1
+	    }
+	}
+	// store the somatic value
+	soma_gkap_healthy.append(soma.gkabar_kap)
+	print "Healthy (initial conductances stored)"
+}
+
+proc restore_healthy_g_A() {
+// the normal A current conductances are restored for simulations
+// that require several modifications of the healthy configuration
+	// restore basal dendrite values
+	i=0
+	forsec "basal" {
+	    sprint(tmp,"%s",secname())
+	    for (x) {
+		sprint(tmp1, \
+		    "if (ismembrane(\"kap\")) {%s.gkabar_kap(x)=basal_gkap_healthy.x[i]}",tmp)
+		execute(tmp1)
+		sprint(tmp1, \
+		    "if (ismembrane(\"kad\")) {%s.gkabar_kad(x)=basal_gkad_healthy.x[i]}",tmp)
+		execute(tmp1)
+		i += 1
+	    }
+	}
+	// restore apical dendrite values
+	i=0
+	forsec "apic" {
+	    sprint(tmp,"%s",secname())
+	    for (x) {
+		sprint(tmp1, \
+		    "if (ismembrane(\"kap\")) {%s.gkabar_kap(x)=apic_gkap_healthy.x[i]}", tmp)
+		execute(tmp1)
+		sprint(tmp1, \
+		    "if (ismembrane(\"kad\")) {%s.gkabar_kad(x)=apic_gkad_healthy.x[i]}",tmp)
+		execute(tmp1)
+		i += 1
+	   }
+	}
+	// restore the somatic value
+	soma.gkabar_kap=soma_gkap_healthy.x[0]
+}
+
+proc apply_aBeta() {
+// Chen C 2005 reports a 46.5% reduction of A in the dendrites and
+// 31.5% reduction in the soma
+	if (alzheimers_flag==0) {
+		forsec "basal" {
+			if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+			if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+		}
+		forsec "apic" {
+			if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+			if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+		}
+		forsec "soma" {
+			if (ismembrane("kap")) {gkabar_kap *= (1-.315)}
+			// there is just kap in soma
+		}
+		print "A-beta applied"
+	}
+	alzheimers_flag=1
+}
+
+proc set_concentration() {
+// Chen C 2005 reports a 46.5% reduction of A in the dendrites and
+// 31.5% reduction in the soma for 100 uM acute aBeta application
+// We further investigate how lesser concentrations of aBeta would
+// effect the cell by modeling smaller concentrations with the
+// assumption that the block would be linearly proportional to the
+// the ratio of the smaller concentration to the full (100 uM).
+  restore_healthy_g_A() // start from healthy cell
+  forsec "basal" {
+	if (ismembrane("kap")) {gkabar_kap *= (1-aBeta_concentration_factor*.465)}
+	if (ismembrane("kad")) {gkabar_kad *= (1-aBeta_concentration_factor*.465)}
+  }
+  forsec "apic" {
+	if (ismembrane("kap")) {gkabar_kap *= (1-aBeta_concentration_factor*.465)}
+	if (ismembrane("kad")) {gkabar_kad *= (1-aBeta_concentration_factor*.465)}
+  }
+  forsec "soma" {
+	if (ismembrane("kap")) {gkabar_kap *= (1-aBeta_concentration_factor*.315)}
+		// there is just kap in soma
+  }
+  print "A-beta applied with concentration dependent factor of ",aBeta_concentration_factor
+  alzheimers_flag=1
+}
+
+proc remove_aBeta() {
+// restore the max conductances by restoring the initial saved values
+	restore_healthy_g_A()
+	alzheimers_flag=0
+	print "Healthy (initial conductances restored)"
+}
+
+proc apply_basal_aBeta() {
+	forsec "basal" {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+		if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+	}
+	print "A-beta applied to basal dendrites"
+	alzheimers_flag=1
+}
+
+proc apply_apic_aBeta() {
+	forsec "apic" {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+		if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+	}
+	print "A-beta applied to apical dendrites"
+	alzheimers_flag=1
+}
+
+proc apply_soma_aBeta() {
+	forsec "soma" {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.315)}
+		// there is just kap in soma
+	}
+	print "A-beta applied to soma"
+	alzheimers_flag=1
+}
+
+proc apply_proximal_aBeta() {
+	forall {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		if (xdist > 100){
+					// distal
+					// if (ismembrane("kad")) {gkabar_kad(x) *= (1-.465)}
+               			} else {
+					// proximal
+					if (ismembrane("kap")) {gkabar_kap(x) *= (1-.465)}
+               				}
+		}
+	}
+	alzheimers_flag=1
+	print "A-beta applied to proximal dendrites"
+}
+
+proc apply_distal_aBeta() {
+	forall {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		if (xdist > 100){
+					// distal
+					if (ismembrane("kad")) {gkabar_kad(x) *= (1-.465)}
+               			} else {
+					// proximal
+					// if (ismembrane("kap")) {gkabar_kap(x) *= (1-.465)}
+               				}
+		}
+	}
+	alzheimers_flag=1
+	print "A-beta applied to distal dendrites"
+}
+
+proc apply_primary_aBeta() {
+	forsec primary {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+		if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+	}
+	print "A-beta applied to primary dendrite"
+	alzheimers_flag=1
+}
+
+proc apply_obliques_aBeta() {
+	forsec obliques {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+		if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+	}
+	print "A-beta applied to oblique dendrites"
+	alzheimers_flag=1
+}
+proc apply_tuft_aBeta() {
+	forsec tuft {
+		if (ismembrane("kap")) {gkabar_kap *= (1-.465)}
+		if (ismembrane("kad")) {gkabar_kad *= (1-.465)}
+	}
+	print "A-beta applied to tuft dendrites"
+	alzheimers_flag=1
+}
+
+// the below functions added to allow the visualization of which dendrites were having
+// aBeta applied to in the special cases of specific application.  It was later determined
+// that these functions left the diameters different than when they started due to 
+// the difference between the nseg version of the diameters and lengths and the pt3d version
+// The functions were then rewritten to modify only the pt3d and renamed to appending the
+// nseg suffix to retain them as an example of what can go wrong if you are using pt3d and
+// adjust diameters during the simulation.  Note: if you do want to experiment with these
+// make sure to change the function call pt3dconst(1) to pt3dconst(0) near the top of this file.
+
+proc inflate_distal_dend_nseg() {
+	forall {
+		for (x) {
+			if (x>0 && x<1) {
+				xdist = distance(x)
+                		if (xdist > 100){
+					// distal
+					starting_value = diam(x)
+					diam(x) *= 10
+		print secname(),x," inflating from ",starting_value," to ", diam(x)
+               			} else {
+					// proximal
+				}
+			}
+		}
+	}
+}
+
+
+proc deflate_distal_dend_nseg() {
+	forall {
+		for (x) {
+			if (x>0 && x<1) {
+				xdist = distance(x)
+				if (xdist > 100){
+					// distal
+					starting_value = diam(x)
+					diam(x) /= 10
+		print secname(),x," deflating from ",starting_value," to ", diam(x)
+				} else {
+					// proximal
+				}
+			}
+		}
+	}
+}
+
+proc inflate_proximal_dend_nseg() {
+	print "Inflate proximal processes"
+	forall {
+		print secname()
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+               		if (xdist > 100){
+				// distal
+        		} else {
+				// proximal
+				print "Inflating ",secname(),", to diam(", x,")=",diam(x)*10,", old value=",diam(x)
+				diam(x) *= 10
+			}
+		}
+	}
+}
+
+
+proc deflate_proximal_dend_nseg() {
+	print "Deflate proximal processes"
+	forall {
+		for (x) {
+			if (x>0 && x<1) {
+				xdist = distance(x)
+               			if (xdist > 100){
+					// distal
+	       			} else {
+					print "Deflating ",secname(),", to diam(", x,")=",diam(x)/10,", old value=",diam(x)
+					diam(x) /= 10
+				}
+			}
+		}
+	}
+}
+
+// these below functions added to make reversable inflation/deflation of process that
+// are proximal or distal to the soma with 100 um as the cut-off
+
+proc inflate_distal_dend() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if (xdist > 100){
+				// distal
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value*10)
+			// print secname(),xdist," inflating from ",starting_value," to ", diam3d(i)
+       			} else {
+			// proximal
+			}
+		}
+	}
+}
+
+proc deflate_distal_dend() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if (xdist > 100){
+				// distal
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value/10)
+			// print secname(),xdist," deflating from ",starting_value," to ", diam3d(i)
+       			} else {
+			// proximal
+			}
+		}
+	}
+}
+
+proc inflate_proximal_dend() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if (xdist > 100){
+				// distal
+       			} else {
+			// proximal
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value*10)
+			// print secname(),xdist," inflating from ",starting_value," to ", diam3d(i)
+			}
+		}
+	}
+}
+
+
+proc deflate_proximal_dend() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if (xdist > 100){
+				// distal
+       			} else {
+			// proximal
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value/10)
+			// print secname(),xdist," deflating from ",starting_value," to ", diam3d(i)
+			}
+		}
+	}
+}
+
+proc inflate_primary_dend() {
+  forsec primary {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value*10)
+    }
+  }
+}
+
+proc deflate_primary_dend() {
+  forsec primary {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value/10)
+    }
+  }
+}
+
+proc inflate_oblique_dend() {
+  forsec obliques {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value*10)
+    }
+  }
+}
+
+proc deflate_oblique_dend() {
+  forsec obliques {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value/10)
+    }
+  }
+}
+
+proc inflate_tuft_dend() {
+  forsec tuft {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value*10)
+    }
+  }
+}
+
+proc deflate_tuft_dend() {
+  forsec tuft {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value/10)
+    }
+  }
+}
+
+
+proc apic_resize() {
+// apic_resize_factor=1 default value doesn't change anything, 10, 1/10 typical choices
+// apic_comp_index selects in text box which compartment is specifically changed, 0-128 valid choices
+
+  apic[apic_comp_index] {
+    for i=0, n3d()-1 {
+      starting_value = diam3d(i)
+      pt3dchange(i, starting_value*apic_resize_factor)
+    }
+  }
+}
+
+
+proc inflate_chen_electrode() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if ((xdist >= 240)&&(xdist <= 300)){
+				// inside Chen C 2005 electrode range fig 2
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value*10)
+			// print secname(),xdist," inflating from ",starting_value," to ", diam3d(i)
+			}
+		}
+	}
+}
+
+
+proc deflate_chen_electrode() {
+	forall {
+		start_dist = distance(0)
+		for i=0, n3d()-1 {
+			xdist = start_dist + arc3d(i)
+               		if ((xdist >= 240)&&(xdist <= 300)){
+				// inside Chen C 2005 electrode range fig 2
+				starting_value = diam3d(i)
+				pt3dchange(i, starting_value/10)
+			// print secname(),xdist," deflating from ",starting_value," to ", diam3d(i)
+			}
+		}
+	}
+}
+

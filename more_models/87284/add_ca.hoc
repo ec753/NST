@@ -1,0 +1,82 @@
+// add_ca.hoc
+// add Ca2+ channels and pump from Michele's 2008 CA3 model 101629
+// to the cell to model how Ca2+ increases with greater bAPs
+// The T, N, and L-type Ca channels are included and also the
+// Ca2+ sensitive K channel to balance the Ca2+ excitation
+// Future modifications could be done using the distributions cited by
+// Oh MM, et al. 2010 (Disterhoft lab review article):
+// "...Studies have shown that VGCCs are non-uniformly distributed on CA1
+// pyramidal cells: L and N-type VGCCs are found predominantly on the
+// soma and proximal dendrites; T and R-type VGCCs are found
+// predominantly on the apical dendrites (Westenbroek et al., 1990;
+// Westenbroek et al., 1992; Christie et al., 1995; Magee et al., 1995;
+// Magee and Johnston, 1995a, b; Westenbroek et al., 1995; Christie et
+// al., 1996; Magee and Carruth, 1999).
+
+gc=1.e-5 * 2.5 // 2.5x original 2008 Miglioire model distribution is new default
+gKc=5e-5
+gcal=gc*4
+gcan=gc*4
+gcat=gc
+
+forsec "apic" { 
+        insert cacum
+        for (x, 0) depth_cacum(x)=diam(x)/2 // Ca2+ accumulation and pump 
+	// see comment at top of this script:
+        insert cal // L-type
+	insert can // N-type
+        insert cat // T-type Ca2+ channels
+	insert cagk // Ca2+ sensitive K channel
+}
+
+// assume basal distribution of Ca channels similar to apical although
+// there are no citations for this
+forsec "basal" { 
+    insert cacum
+    for (x, 0) depth_cacum(x)=diam(x)/2 // Ca2+ accumulation and pump 
+    insert cal // L-type
+    insert can // N-type
+    insert cat // T-type Ca2+ channels
+    insert cagk // Ca2+ sensitive K channel
+
+}
+
+forsec "soma" { 
+	insert cacum depth_cacum=diam/2
+        insert cal 
+        insert can 
+        insert cat // according to Oh et al. (above quote) not present
+	insert cagk  
+}
+
+proc init_ca() { // initializes calcium channels max conductances
+     forall {
+	    if (ismembrane("cal")) {
+	       gcalbar_cal=gc*4
+	       gbar_cagk= gKc 
+	   }
+	    if (ismembrane("can")) {
+	       gcanbar_can=gc*4
+	       gbar_cagk= gKc 
+	   }
+	   if (ismembrane("cat")) {
+	       gcatbar_cat=gc
+	       gbar_cagk= gKc 
+	   }
+     }
+}
+
+proc reset_ca() {
+     gc=$1
+     init_ca()
+}
+
+proc init_cat() { // pass this function the new value for cat everywhere
+     forall {
+	    if (ismembrane("cat")) {
+	       gcatbar_cat=$1
+	   }
+     }
+
+}
+

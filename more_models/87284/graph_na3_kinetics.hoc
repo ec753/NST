@@ -1,0 +1,13 @@
+// graph_na3_kinetics.hoc
+// graph na3 activation, inactivation, slow-inactivation
+
+load_file("nrngui.hoc")
+
+create soma
+access soma
+insert na3
+
+load_file("make_na3_graph.hoc")
+sinf_vth_na3= -80
+taus_vth_na3 = -90
+make_na3_graph()

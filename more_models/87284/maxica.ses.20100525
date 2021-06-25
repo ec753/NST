@@ -1,0 +1,272 @@
+objref maxica_graph[8]
+
+objectvar save_window_, rvp_
+objectvar scene_vector_[24]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-0.025,-4.65661e-10)
+scene_vector_[11] = save_window_
+{save_window_.view(-10, -0.025, 850, 0.025, 439, 25, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("ica")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("ica")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("ica")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("ica")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 1, 0.8, 0.9)
+maxica_graph[0]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-8.73115e-11,0.003)
+scene_vector_[13] = save_window_
+{save_window_.view(-10, -8.73115e-11, 850, 0.003, 439, 289, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("cai")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cai")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cai")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cai")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.8, 0.9)
+maxica_graph[1]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-5.82077e-11,0.003)
+scene_vector_[16] = save_window_
+{save_window_.view(-10, -5.82077e-11, 850, 0.003, 439, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.66262, 0.947923)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.66262, 0.938339)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.681789, 0.938339)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmax_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.672204, 0.933546)
+maxica_graph[2]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-0.02,2.32831e-10)
+scene_vector_[12] = save_window_
+{save_window_.view(-10, -0.02, 850, 0.02, 766, 25, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.611502, 0.559744)
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.611502, 0.516613)
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.598722, 0.478275)
+objectvar rvp_
+rvp_ = new RangeVarPlot("imax_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.582748, 0.435144)
+maxica_graph[3]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-1.19209e-07,6)
+scene_vector_[14] = save_window_
+{save_window_.view(-10, -1.19209e-07, 850, 6, 766, 289, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.263259, 0.967093)
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.263259, 0.9623)
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.269649, 0.967093)
+objectvar rvp_
+rvp_ = new RangeVarPlot("hwi_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.269649, 0.976677)
+maxica_graph[4]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,0,8)
+scene_vector_[17] = save_window_
+{save_window_.view(-10, 0, 850, 8, 766, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.64345, 0.588498)
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.643451, 0.583706)
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 2, 0.64345, 0.578914)
+objectvar rvp_
+rvp_ = new RangeVarPlot("svr_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.637061, 0.569329)
+maxica_graph[5]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-9.31323e-10,0.06)
+scene_vector_[15] = save_window_
+{save_window_.view(-10, -9.31323e-10, 850, 0.06, 1093, 289, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("qapprox_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.464537, 0.914377)
+objectvar rvp_
+rvp_ = new RangeVarPlot("qapprox_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.461342, 0.904792)
+objectvar rvp_
+rvp_ = new RangeVarPlot("qapprox_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.458147, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("qapprox_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.458147, 0.885623)
+maxica_graph[6]=save_window_
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(-10,840,-8.73115e-11,0.003)
+scene_vector_[18] = save_window_
+{save_window_.view(-10, -8.73115e-11, 850, 0.003, 1093, 553, 300.48, 200.32)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[42] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 3, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[53] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 3, 2, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[67] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 4, 1, 0.8, 0.9)
+objectvar rvp_
+rvp_ = new RangeVarPlot("cmaxp_caquant")
+soma rvp_.begin(1)
+apic[97] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 5, 7, 0.8, 0.9)
+maxica_graph[7]=save_window_
+}
+objectvar scene_vector_[1]
+{doNotify()}

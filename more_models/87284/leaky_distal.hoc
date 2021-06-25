@@ -1,0 +1,42 @@
+proc make_leaky_distal_Rm() {
+  // theta from Omori et al. 2009
+  theta = 350 // mid point in range of values for threshold change
+	      // of Rm in sigmoid or step function
+  print "making distal dends > ",theta," ums leaky (incr. g_pas)"
+  forsec "basal" {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		if (xdist > theta){
+                		    g_pas=1/RmDistalDend
+				} else {
+                		    g_pas=1/RmDend
+               			}
+		}
+  }
+                
+// forsec "apical_dendrite" {
+  forsec "apic" {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		if (xdist > theta){
+                		    g_pas=1/RmDistalDend
+				} else {
+                		    g_pas=1/RmDend
+               			}
+                }
+  }
+}
+
+proc make_const_dend_Rm() {
+  print "making all dends have same Rm (g_pas)"
+  forsec "basal" {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		    g_pas=1/RmDend
+		}
+  }
+                
+// forsec "apical_dendrite" {
+  forsec "apic" {
+		for (x) if (x>0 && x<1) { xdist = distance(x)
+                		    g_pas=1/RmDend
+                }
+  }
+}

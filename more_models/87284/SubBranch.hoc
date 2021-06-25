@@ -1,0 +1,37 @@
+// SubBranch.hoc
+// forms subbranch from section with the function call
+// objref sb
+// sb=new SubBranch(tmpSectionRef)
+// sb is then a SectionList including tmpSectionRef.sec and all it's descendents
+// then can iterate through all the sections with
+// forsec sb.o { ... }
+
+begintemplate SubBranch
+// expects to be called as above
+public o // output object o is a SectionList of the input argument's sec and all it's children
+objref tmpobj, tmpobj1, o, children, sl, tmpobj2, tmpobj3, tmpsr
+proc init() {
+   if (numarg()) {
+     tmpobj = $o1
+     o=new SectionList()
+     children=new SectionList()
+     tmpobj.sec o.append()
+     last_number_of_elements = 0  // at this init time the last is also the first
+     forsec o { last_number_of_elements +=1 }  // find the number of children
+     tmpobj.sec o.children()  // all called sec's children to the current dendrite
+     current_number_of_elements=0
+     forsec o { current_number_of_elements +=1 }  // find the number of children
+     number_of_new_elements = current_number_of_elements - last_number_of_elements
+     while (number_of_new_elements) {
+       last_number_of_elements = current_number_of_elements
+       forsec o { o.children() }  // add any potential new children to the list
+       o.unique() // make the list unique
+       current_number_of_elements=0
+       forsec o { current_number_of_elements +=1 }  // find the number of children
+       number_of_new_elements = current_number_of_elements - last_number_of_elements
+     }
+     // print " on exit o is:"
+     // o.printnames()
+   }
+ }
+endtemplate SubBranch

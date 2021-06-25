@@ -1,0 +1,226 @@
+// init_and_run_and_graph.hoc
+// model specific versions of initialization and run procedures including graphing after the run
+reset_e_pas = -1
+proc init() {
+	t=0
+        forall {
+        v=Vrest
+        if (ismembrane("nax") || ismembrane("na3")) {ena=55}
+        if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-90}
+        if (ismembrane("hd") ) {ehd_hd=-30}
+	}
+	finitialize(Vrest) // use v_init if want to change.
+        fcurrent()
+	forall if (ismembrane("cacum")) {
+	       for(x,0) irest_cacum(x)=ica(x)
+// bug fix removes this	       for(x,0) irest_cacum(x)=-ica(x) // this init is not correct in the sense
+// that it does not make the starting resting membrane potential an equilibrium point
+// which is what it was intended to be.  Since the calcium currents are small here
+// it is only a small pertubation (see the use of irest in cacumm.mod)
+	}
+  if (reset_e_pas) {
+        forall {
+	  for (x) {
+           if (ismembrane("na3")||ismembrane("nax")){e_pas(x)=v(x)+(ina(x)+ik(x))/g_pas(x)}
+	    if (ismembrane("hd")) {e_pas(x)=e_pas(x)+i_hd(x)/g_pas(x)}
+	    if (ismembrane("ca_ion")) {e_pas(x)=e_pas(x)+ica(x)/g_pas(x)}
+	  }
+	}
+  }
+// uncomment for cvode however cvode incompat. with Calcium analysis code
+//	cvode.re_init()
+//	cvode.event(tstop)
+	access soma
+	g.begin()
+	// init_ca()  // initialize Ca2+ channels and Ca2+ sens. K+ current
+	// print "Ca2+ channels initialized"
+	frecord_init() // properly resets vectors for recording
+}
+
+
+proc advance() {
+	fadvance()
+	g.plot(t)
+	g.flush()
+	p.flush()
+	doNotify()
+}
+objref sect_list_2getparent
+objref obdend_ca_vec  // record the Ca2+ in an oblique dendrite
+
+proc runp() {
+	// record soma and an apical dendrite's voltages in vectors
+	soma_v_vec=new Vector()
+	dend_v_vec=new Vector()
+	obdend_v_vec=new Vector()
+	soma_v_vec.record(&soma.v(0.5))
+	dend_v_vec.record(&apic[16].v(0.5))  // 16 is 264.5, 14 is 233 um, 18 is 284 um from soma
+	obdend_v_vec.record(&apic[76].v(0.5))  // tip of the middle oblique featured in fig 1
+
+	obdend_ca_vec=new Vector()
+	obdend_ca_vec.record(&apic[76].v(0.5))  // tip of the middle oblique featured in fig 1
+
+        stdinit()
+	continuerun(tstop)
+
+	distrx=new Vector() // dist. from soma stored here used for several other vec's x coord's
+	distry=new Vector()
+//	obliquex=new Vector() // holds distance from soma to oblique dend
+//	obliquey=new Vector() // holds max voltage corresponding to distance
+	// in the primary apical dendrite (the trunk)
+	primaryx=new Vector() // holds distance from soma to primary dend
+	primaryy=new Vector() // holds max voltage corresponding to distance
+	primaryca=new Vector() // holds max calcium corresponding to distance
+	primaryoptical=new Vector() // holds max optical corresponding to distance
+	// in the tuft
+	tuftx=new Vector() // holds distance from soma to tuft dend
+	tufty=new Vector() // holds max voltage corresponding to distance
+	tuftca=new Vector() // holds max ca corresponding to distance
+	tuftoptical=new Vector() // holds optical voltage corresponding to distance
+
+	distrca=new Vector() // holds the maximum cai per compartment
+	distr_cai_t=new Vector() // holds the time at which those max's occurred
+
+//	forsec "apical_dendrite" {
+	forsec "apic" {
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			distrx.append(distance(x))       // note these vecs used only for markers so don't 
+			distry.append(vmax_ds(x)-Vrest)  // need to be connected to previous dends like lines
+			distrca.append(cmax_cacum(x))  // use absolute value to start with
+			distr_cai_t.append(ca_tmax_cacum(x))
+			}
+		}
+	}
+// role taken over by bAP_peak_vecs.hoc
+//	forsec obliques {
+//		for (x) if (x>0 && x<1) {
+//			if (diam>=0.) {
+//			obliquex.append(distance(x)) 
+//			obliquey.append(vmax_ds(x)-Vrest)
+//			}
+//		}
+//	}
+	forsec primary {
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			primaryx.append(distance(x)) 
+			primaryy.append(vmax_ds(x)-Vrest)
+			primaryca.append(cmax_cacum(x))
+			primaryoptical.append((cmax_cacum(x)-cai0_cacum(x))/cai0_cacum(x))
+			}
+		}
+	}
+	forsec tuft {
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			tuftx.append(distance(x)) // used only for markers
+			tufty.append(vmax_ds(x)-Vrest)
+			tuftca.append(cmax_cacum(x))
+			tuftoptical.append((cmax_cacum(x)-cai0_cacum(x))/cai0_cacum(x))
+			}
+		}
+	}
+	// also receive the time of the peak - used interactively (via gui) to study time delivery of peak bAP
+	distrt=new Vector() // can be graphed with distrx as x coordinate
+//	forsec "apical_dendrite" {
+	forsec "apic" {
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			distrt.append(tmax_ds(x))
+			}
+		}
+	}
+      assign_dist_peak_vecs()
+      if (marker_graph) {
+//         distry.mark(c,distrx,current_marker_style,current_marker_size,current_marker_color+alzheimers_flag,2)
+//         obliquey.mark(d,obliquex,current_marker_style,current_marker_size+1,current_marker_color-alzheimers_flag,2)
+         primaryy.mark(d,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+         tufty.mark(d,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+         primaryca.mark(peak_ca_graph,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+         tuftca.mark(peak_ca_graph,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+         primaryoptical.mark(peak_optical_graph,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+         tuftoptical.mark(peak_optical_graph,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+      }
+      if (line_graph) {
+         // if line graph then make line graphs for bAPs if abeta (alzheimers_flag) shift color
+         // now done at bottom of this proc with calls to bAP_peak_vecs.hoc procs
+//         forsec obliques {
+//            color_choice=1+alzheimers_flag // black or red if abeta present
+//            tmp_vecx=new Vector()
+//            tmp_vecy=new Vector()
+//		for (x) if (x>0 && x<1) {
+//			if (diam>=0.) {
+//			tmp_vecx.append(distance(x)) 
+//			tmp_vecy.append(vmax_ds(x)-Vrest)
+//			}
+//		}
+//            tmp_vecy.line(d,tmp_vecx, color_choice,1)
+//         }
+         // the primary is a special case where there are no branches and
+         // only apic[25] has nseg different than 1
+         tmp_vecx=new Vector()
+         tmp_vecy=new Vector()
+         forsec primary {
+            color_choice=7+alzheimers_flag // purple or yellow if abeta present
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			tmp_vecx.append(distance(x)) 
+			tmp_vecy.append(vmax_ds(x)-Vrest)
+			}
+		}
+         }
+         tmp_vecy.line(d,tmp_vecx, color_choice,4)
+         forsec tuft {
+            color_choice=4+alzheimers_flag //  if abeta present
+            tmp_vecx=new Vector()
+            tmp_vecy=new Vector()
+         // here need to add in code that will connect tuft dends to their parents
+         // which are either the primary trunk or other tufts
+            sect_list_2getparent = new SectionRef()
+            sect_list_2getparent.parent {
+                  x=0.5*((nseg-1)/nseg+1) // finds last relative (0-1) point on parent
+              	tmp_vecx.append(distance(x)) // that we want to start with
+			tmp_vecy.append(vmax_ds(x)-Vrest)
+            }
+
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			tmp_vecx.append(distance(x))
+			tmp_vecy.append(vmax_ds(x)-Vrest)
+			}
+		}
+            tmp_vecy.line(d,tmp_vecx, color_choice,1)
+         }
+      }
+      // for model to Chen statistics comparison:
+      chen_c_bpAP_peaks=new Vector() // apic[15] through 19 have middles
+
+	// within Chen C 2005 range of 240-300 ums.  It was found by hand that these
+	// compartments apic[15 through 19] correspond to the primary dendrite, the likely
+	// source of Chen C's electrical recordings.
+	/* oc>for i=14,19 {apic[i] print secname(),.5,distance(.5),v }
+	apic[14]0.5 233.72056 -46.048939
+	apic[15]0.5 253.83815 -41.003093
+	apic[16]0.5 264.45777 -38.230327
+	apic[17]0.5 276.62687 -34.690309
+	apic[18]0.5 284.63212 -32.181721
+	apic[19]0.5 295.92992 -28.539688
+	oc>
+	*/
+
+	for i=15,19 {
+		apic[i] chen_c_bpAP_peaks.append(vmax_ds(0.5)-Vrest)
+	}
+	soma chen_c_bpAP_soma_peak=vmax_ds(0.5)-Vrest
+//	c.flush()
+	doNotify()
+//      assign_dist_peak_vecs() // new procs which connect the oblique dendrites
+      print "calling graph_dist_peak_vecs()"
+      graph_dist_peak_vecs()
+}
+
+proc runm() {
+  print "model run"
+  runp()  // used to be runp(1) however the argument is no longer used
+}

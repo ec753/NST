@@ -1,0 +1,55 @@
+// cond_report.hoc conductance report program
+// Displays the conductance densities (and equiv resistances) when called
+
+proc cond_report() {
+
+  soma distance()  // reset distance measurements to 0 at soma
+
+  access soma
+  g_prox_report()
+
+  access apic[13]
+  g_dist_report() // includes proximal a-type current
+
+  access apic[33]
+  g_dist_report() // includes distal a-type current
+
+  access apic[43]
+  g_dist_report()
+}
+
+proc g_prox_report() {
+  g_common_report() // common currents
+  print " gka_kap = ",gka_kap(0.5)," resistance = ", 1/(gka_kap(0.5)+1e-30)
+  print " driving force = ", v-ek
+  print " specific current = ",gka_kap(0.5)*(v-ek)
+  print "-------------------------------------------------"
+}
+proc g_dist_report() {
+  g_common_report() // common currents
+  print " gka_kad = ",gka_kad(0.5)," resistance = ", 1/(gka_kad(0.5)+1e-30)
+  print " driving force = ", v-ek
+  print " current = ", gka_kad(0.5)*(v-ek)
+  print "-------------------------------------------------"
+}
+
+proc g_common_report() {
+  print "Location ",secname()," distance = ", distance(0.5)
+  print " e_pas = ", g_pas(0.5), " resistance = ", 1/g_pas(0.5)
+  print " driving force = ", v(0.5)-e_pas(0.5), " (negative depolarizes cell)"
+  print " specific current = ", g_pas(0.5)*(v-e_pas(0.5))
+  print "H"
+  print " ghd_hd = ",ghd_hd(0.5), " resistance = ",1/ghd_hd(0.5)
+  print " driving force = ", v(0.5) - ehd_hd
+  print " specific current = ",ghd_hd(0.5)*( v(0.5) - ehd_hd)
+  print "na3"
+  print " g_na3 = ", thegna_na3(0.5), " resistance = ", 1/thegna_na3(0.5)
+  print " driving force = ", v-ena
+  print " specific current = ",thegna_na3(0.5)*(v-ena)
+  print "K currents"
+  print "KDR"
+  print " g_kdr = ", gkdr_kdr(0.5), " resistance = ", 1/gkdr_kdr(0.5)
+  print " driving force = ",(v-ek), " (negative depolarizes cell)"
+  print " specific current = ", gkdr_kdr(0.5)*(v-ek)
+  print "A-type"
+}

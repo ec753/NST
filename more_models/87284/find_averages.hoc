@@ -1,0 +1,90 @@
+// find_averages.hoc
+// To create concentration dependent graph:
+// I want to graph the average voltages in the dendrites
+// (do I want to break it up into the obliques, primary, tuft)?
+// graph the averages in bins of 50 microns to get started
+
+objref bin_vecx, bin_vecy, bin_vecca
+objref tmp_vecy, bin_std, bin_stderr
+objref tmp_vecca, bin_stdca, bin_stderrca
+
+tmp_vecy = new Vector()
+tmp_vecca = new Vector()
+bin_vecx = new Vector()
+bin_vecy = new Vector()
+bin_std = new Vector()
+bin_stderr = new Vector()
+bin_stdca = new Vector()
+bin_stderrca = new Vector()
+
+interval=50 // 50 um bin size
+proc graph_avg() {  // pass the graph object as $o1, the ca graph object as $o2, color as $3
+// global vectors distrx contains the distance from the soma, distry the voltages, distrca max calcium
+  // reset vectors
+  bin_vecy=new Vector()
+  bin_vecca=new Vector()
+  bin_vecx=new Vector()
+  bin_std=new Vector()
+  bin_stderr=new Vector()
+  bin_stdca=new Vector()
+  bin_stderrca=new Vector()
+  // xv is x value
+//  for (xv=0;xv<850;xv += interval) {
+  for j=0, distrx.size()-1 {
+    xv=distrx.x[j]-interval/2  // start of bin interval under consideration
+    
+    bin_vecx.append(distrx.x[j])  // each point on apical dendrites is a bin center
+    tmp_vecy = new Vector()  // first store all the y values for a bin here
+                             // then calculate the statistics on them
+    tmp_vecca = new Vector()  // first store all the calcium values for a bin here
+                             // then calculate the statistics on them
+    // iterate over distrx, distry the distributions over the apical dends.
+    for i=0, distrx.size()-1 {
+      dist = distrx.x[i]
+      if ((dist>=xv)&& (dist<xv+interval)) {
+        // the point is in the interval under consideration
+        tmp_vecy.append(distry.x[i])
+        tmp_vecca.append(distrca.x[i])
+      }
+    }
+    bin_vecy.append(tmp_vecy.mean())
+    bin_std.append(tmp_vecy.stdev())
+    bin_stderr.append(tmp_vecy.stderr())
+    bin_vecca.append(tmp_vecca.mean())
+    bin_stdca.append(tmp_vecca.stdev())
+    bin_stderrca.append(tmp_vecca.stderr())
+  }
+/**/
+//  bin_vecy.mark($o1, bin_vecx, "o", 4, $3, 1) // default size 12 pts, color $3, brush 1
+//  bin_vecy.mark($o1, bin_vecx, "|", 12, $3, 1) // default size 12 pts, color $3, brush 1
+  for i=0, bin_vecx.size()-1 {
+     x = bin_vecx.x[i]
+     deltay = bin_stderr.x[i]
+     tmp_vecx = new Vector()
+     tmp_vecy = new Vector()
+     tmp_vecx.append(x,x)
+     tmp_vecy.append(bin_vecy.x[i]+deltay,bin_vecy.x[i]-deltay)
+     tmp_vecy.line($o1, tmp_vecx, $3, 1)
+     // calcium
+     deltaca = bin_stderrca.x[i]
+     tmp_vecca = new Vector()
+     tmp_vecca.append(bin_vecca.x[i]+deltaca,bin_vecca.x[i]-deltaca)
+     tmp_vecca.line($o2, tmp_vecx, $3, 1)
+  }
+  bin_vecy.c.add(bin_stderr).mark($o1, bin_vecx, "-", 4, $3, 1) // default size 12 pts, color $3, brush 1
+  bin_vecy.c.sub(bin_stderr).mark($o1, bin_vecx, "-", 4, $3, 1) // default size 12 pts, color $3, brush 1
+  bin_vecca.c.add(bin_stderrca).mark($o2, bin_vecx, "-", 4, $3, 1) // default size 12 pts, color $3, brush 1
+  bin_vecca.c.sub(bin_stderrca).mark($o2, bin_vecx, "-", 4, $3, 1) // default size 12 pts, color $3, brush 1
+/**/
+/*
+  bin_vecy.line($o1, bin_vecx, $3, 1)
+//  bin_vecy.c.add(bin_std).line($o1, bin_vecx, $3, 5)
+//  bin_vecy.c.sub(bin_std).line($o1, bin_vecx, $3, 5)
+  bin_vecy.c.add(bin_stderr).line($o1, bin_vecx, $3, 5)
+  bin_vecy.c.sub(bin_stderr).line($o1, bin_vecx, $3, 5)
+  //calcium
+  bin_vecca.line($o2, bin_vecx, $3, 1)
+  bin_vecca.c.add(bin_stderrca).line($o2, bin_vecx, $3, 5)
+  bin_vecca.c.sub(bin_stderrca).line($o2, bin_vecx, $3, 5)
+*/
+}

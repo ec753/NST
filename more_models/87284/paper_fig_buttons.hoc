@@ -1,0 +1,97 @@
+// paper_fig_buttons.hoc
+demo_mode=1 // true(1) then dt=.1, otherwise when false(0), dt=.025
+xpanel("Morse et al. 2010")
+  xlabel("Click on a button to recreate a figure or control panel")
+  xbutton("Figure 1, 2","fig1and2()")
+  xbutton("Figure 3","fig3()")
+  xbutton("Figure 4","fig4()")
+  xbutton("Figure 5","fig5()")
+  xbutton("Figure 6","fig6()")
+  xbutton("Quit","quit()")
+  xbutton("IA and Rm conductance control panel","IA_and_Rm()")
+  xbutton("research panel: aBeta conc.and application, calcium channels, etc.","research_panel()")
+  xlabel("Demo mode has dt=.1 ms, otherwise dt=0.025")
+  xlabel("Switch off for longer but more accurate simulation runs:")
+  xstatebutton("Demo mode",&demo_mode, "toggle_time_step()")
+xpanel(400,400)
+
+
+objref pwm
+pwm=new PWManager()
+
+
+for (counter=pwm.count()-2;counter>1;counter-=1) {
+  // print " hiding number ",counter
+  pwm.hide(counter)
+  doNotify()
+}
+/**/
+proc fig1and2() {
+  ChenCfig2A()
+  b1.map()
+}
+proc fig3() {
+  load_file("fig3.ses")
+}
+objref fig4_graph
+fig4_graph=new Graph(0)
+proc fig4() { local i
+  remove_aBeta()
+  load_file("fig4.ses")
+  for i=0,10 {
+    aBeta_concentration_factor=i/10
+    set_concentration()
+    runm()
+    fig4_graph.exec_menu("Keep Lines")
+    fig4_graph.exec_menu("Keep Lines")
+  }
+}
+proc fig5() {
+  remove_aBeta()
+  runm()
+  apply_obliques_aBeta()
+  runm()
+}
+objref caquant_graphs[5]
+
+proc fig6() { local i
+  remove_aBeta()
+  xopen("ntc_additions.hoc")
+  load_file("maxica.hoc")
+  finitialize(v_init)
+  mode_caquant = 1 // measure peak ica and cai
+  run()
+  mode_caquant = 2 // measure half widths of ica
+  finitialize(v_init)
+  run()
+  // below allows new lines to be written will saving last run
+  for i=0, 4 {
+      caquant_graphs[i].exec_menu("Keep Lines")  // repeating twice keeps
+      caquant_graphs[i].exec_menu("Keep Lines")  // lines but rewrites new
+    }
+  apply_aBeta()
+  mode_caquant = 1 // measure peak ica and cai
+  finitialize(v_init)
+  run()
+  mode_caquant = 2
+  finitialize(v_init)
+  run()
+}
+proc IA_and_Rm() {
+  pwm.hide(4)
+  pwm.map(4)
+}
+proc research_panel() {
+  pwm.hide(3)
+  pwm.map(3)
+}
+proc toggle_time_step() {
+  if (demo_mode) {
+    steps_per_ms = 10
+    dt = 0.10
+  } else {
+    steps_per_ms = 40
+    dt = 0.025
+  }
+}
+toggle_time_step() // set to demo_mode to start

@@ -1,0 +1,34 @@
+// generate_conc_graph.hoc
+// updated 20100215 ro remove abeta before each redone abeta graph
+load_file("find_averages.hoc")
+
+objref conc_graph, conc_graph_ca
+{conc_graph = new Graph(0)}
+{conc_graph_ca = new Graph(0)}
+proc generate_conc_graph() {
+  init()
+  // run model in control condition
+  runp()
+  graph_avg(conc_graph,conc_graph_ca, 1)  // 1 is black for control
+
+  // linear model 0.2 uM aBeta
+  aBeta_concentration_factor=0.2
+  set_concentration()
+  runp()
+  graph_avg(conc_graph,conc_graph_ca, 7) // 7 is purple
+
+  // linear model 0.5 uM aBeta
+  remove_aBeta()
+  aBeta_concentration_factor=0.5
+  set_concentration()
+  runp()
+  graph_avg(conc_graph,conc_graph_ca, 5) // 5 is orange
+
+  // repeat 1 uM aBeta for reference
+  remove_aBeta()
+  aBeta_concentration_factor=1
+  set_concentration()
+  runp()
+  graph_avg(conc_graph, conc_graph_ca, 2) // red
+  conc_graph.exec_menu("View = plot")
+}

@@ -1,0 +1,98 @@
+// create subset that contains only the apicals and the soma
+
+objref atree
+atree = new SectionList()
+soma atree.append()
+apic[0] atree.subtree()
+
+// show just the elements of the set in a Shape
+objref atreesh
+atreesh = new Shape(0)
+atreesh.size(-10,740,-429.402,319.402)
+atreesh.view(-10, -429.402, 750, 748.804, 7, 105, 200.64, 200.32)
+atreesh.observe(atree)
+
+// build subsets that contain cal+can and car+cat
+// note the model no longer uses uses this type of ca distrib.
+// however this portion of the code still needs to be cleaned up.
+
+objref calcan, carcat
+calcan = new SectionList()
+carcat = new SectionList()
+forsec atree {
+  if (ismembrane("cal")) {
+    calcan.append()
+  } else {
+    // these are nonoverlapping, so . . .
+    carcat.append()
+  }
+}
+
+forsec atree {
+  insert caquant
+  for (x,0) svr_caquant(x) = 1/depth_cacum(x)
+}
+
+mode_caquant = 1 // measure peak ica and cai
+
+proc xrun() {
+  finitialize(v_init)
+  mode_caquant = 1 // measure peak ica and cai
+  run() // don't bother with runm()--does lots of stuff not
+        // relevant to these figs
+  // note:  the use of different slightly different initializations
+  // for example, the one from init() in init_and_run....hoc, can
+  // lead to especially different half widths of the ica spike as the
+  // AP backpropagates into the distal dendrites.  However the basic
+  // result that the max calcium peak occurs in the obliques 
+  // proximal to the branch from the trunk remains unchanged in both the
+  // control and aBeta cases (as long as there is significant propagation
+  // into that proximal portion of the oblique).
+
+  mode_caquant = 2
+  run()
+
+  /*
+  Sets up plots of max ica, cai, max cai, ica halfwidth,
+  surface/vol ratio, approx q entry by ca, and predicted max cai.
+  Also sets up a List of the cmax range var plots
+  and a List of the SectionLists that define the spatial coverage
+  of each RangeVarPlot.
+  */
+  load_file("maxica.hoc")
+
+}
+
+
+// apply abeta before calling the following procs
+
+// show recording sites
+MARKSIZE = 4 // size of marks.  4 is good for small Shapes
+proc show_recording_sites() {
+  // markpoints.hoc presumes maxica.hoc has been loaded
+  load_file("maxica.hoc")
+  load_file("markpoints.hoc") // to mark points on a shape plot
+  domarks(atreesh, MARKSIZE) // atreesh or shlist.o(i) where i=0-3 (tuft, dist, intermed, prox)
+}
+
+// show time axis plots of v, i, can caimax
+// these would look better if tstop were 15 ms
+// throw away after generating plots
+proc vicaplots() { local tsave
+  xopen("proxplots.ses")
+  xopen("intermedplots.ses")
+  xopen("distplots.ses")
+  xopen("tuftplots.ses")
+  xrun()
+}
+
+proc myshapes() { local ii
+  load_file("maxica.hoc")
+  pathshapes()
+  atreesh.exec_menu("View Axis")
+  // shlist is empty when this proc is first parsed
+  // so we can't do this:
+//  for ii=0,shlist.count()-1 shlist.o(ii).exec_menu("View Axis")
+  // but we can get away with this:
+  execute("for ii=0,shlist.count()-1 shlist.o(ii).exec_menu(\"View Axis\")")
+}

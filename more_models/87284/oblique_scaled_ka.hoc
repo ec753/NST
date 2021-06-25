@@ -1,0 +1,213 @@
+// oblique_scaled_ka.hoc
+
+load_file("SubBranch.hoc")
+objref sl, finished, sr	
+sl=new SectionList()
+
+// note that for the c91662 cell the basal dendrites are equivalent to
+// the dend subsection "for i=0, numbasal-1 dendrite[i] {" in
+// Michele's model (accession # 55035) from which this is derived.
+gbar_ka_max = 0.2826 // maximum value in Michele's absolute spatial
+// current distribution.  If a relative method is used where this maximum
+// is achieved on each dendrite then a maximum distance dmax for that
+// dendrite also needs to be determined.
+// If the ramp slope is set from the longest of all the branches in
+// a group that is connected through each process connecting to the
+// shaft, the arbitrary assignment method of I_A in the apicals is
+// perhaps as simply defined as it could be.  If one tries to adopt
+// a scheme where the same gmax_ka is reached at the tips of all the
+// oblique dendrites then one must decide how the gmax's are computed
+// up to each branch point.  If there are a lot of branch points, if
+// the conductance changes uniformly to the tip of the closest dendrite
+// then the value at that branch point is much larger than it would have
+// been if one only considered setting by the values of I_A at the dendrite that
+// has the farthest point (from the soma).
+
+finished=new SectionList() // once the section's show up in this finished list
+                           // they are accounted for in the sense that
+                           // their gmax_ka (gkabar_ka{p or d}) have been set.
+dmax=0  // these will be the max and min distances within each sub-branch to the soma
+dmin=0
+// using crosshair in modelview on two points of gkabar_kad and finding
+// the slope of the line between them (y1-y2)/(x1-x2)= 0.0003 for Migliore dist.
+slope = KMULT/100 // 0.0003
+t_slope = slope // the trunk and tuft slope, t_slope, is set to the Migliore et al. 2005 value
+// ramp up I_A's gmax relative to each oblique dendrite rather than along whole cell
+o_slope = scale_obliques * slope // reassigned in below proc to stay current
+
+proc assign_relative_ka() {  // this method uses simply the original slope in the Migliore et al.
+// 2005 model to scale the gmaxa
+  print "Assigning ramps of I_A relative to each oblique sub-branch with (slope) scale ",scale_obliques
+  finished = new SectionList() // start with an empty list of finished sections
+  o_slope = scale_obliques*slope
+  for i=53,128 {  // loop through every oblique section
+
+    skip_if_finished = 0 // set to 1 if the current apic[i] had gmax_ka previously assigned
+    apic[i] ifsec finished { skip_if_finished = 1 }
+
+    if ( skip_if_finished ) {
+      // do not have to assign gbar_ka if current apic[i] was done earlier
+    } else {
+
+      // the basic procedure is to
+      // find the starting conductance value at dmin on the primary trunk and then
+      // using the new oblique slope value calculate the conductances throughout the
+      // oblique subbranch connected to that dmin
+
+      apic[i] sr=new SectionRef()
+      sl = new SubBranch(sr)  // add all of apic[i]'s SubBranch to a SectionList
+                              // this procedure relies on the order of the index
+                              // in apic[i] having the lowest number always closest
+                              // to the primary dendrite.  That way when the SubBranch
+                              // class is initiated it finds the sections that are more
+                              // distal to it. (If there was a section apic[i] that was
+                              // the first element in this loop that was more distal to 
+                              // to the primary dendrite than the most proximal oblique
+                              // in this subbranch
+                              // that actually would not cause a problem because when
+                              // the more proximal dendrites are calculated later the
+                              // same dmin, dmax should be found
+                              //  An alternative way to loop over this would be to find the
+                              // sections that make up all the starts of each oblique sub branch
+                              // and iterate over those.
+      // Summary: at this time sl.o contains all the sections to 
+      // iterate over to find the dmax and dmin and then on
+      // a second iteration assign all the gmax_ka's.  Finally
+      // add the sections to the finished SectionList.
+      // diagnostic 2 lines of code: print " processing "
+      // sl.o.printnames()
+      dmax=0    // will hopefully grow from this number
+      dmin=1e6  // will hopefully shrink from this number
+      forsec sl.o {
+	for (x) if (x>0 && x<1) {
+	    xdist = distance(x)
+	    if ( xdist > dmax ) { dmax = xdist }
+	    if ( xdist < dmin ) { dmin = xdist }
+	}
+      }
+      // print "determined dmax to be ",dmax," and dmin to be ", dmin
+
+      g0=KMULT // the y-intercept on the IA gmax (prox or distal) vs distance formula
+
+      forsec sl.o {
+	for (x) if (x>0 && x<1) { xdist = distance(x)
+               	ghdbar_hd(x) = ghd*(1+3*xdist/100)  //setting the h current same as Migliore
+                gstart = g0 + t_slope * dmin // assigns oblique starting IA cond. as same as trunk
+        	if (xdist > 100){
+			vhalfl_hd=-81
+                   	gkabar_kad(x) = gstart + o_slope * (xdist-dmin)
+        	} else {
+//d                print secname(),": x = ",distance(x),", same as ", xdist
+			vhalfl_hd=-73
+               		gkabar_kap(x) = gstart + o_slope * (xdist-dmin)
+//d                print "gstart = ",gstart,", o_slope = ", o_slope
+//               		gkabar_kap(x) = KMULTP*(1+xdist/100) // Migliore method
+        	}
+	}
+      }
+    } // end of if
+    forsec sl.o { finished.append() } // add the finished sections to the finished SectionList
+  }
+}
+
+// Under development
+//
+// Alternative method to consider implementing if there is experimental
+// evidence for a particular maximum density that is achieved in the
+// tips of the distal dendrites.
+// Assign the maximum conductance for I_A in the obliques
+// based on assigning the maximum value to the tip of each
+// oblique dendrite subbranch.  When there are dendritic branches
+// in this cell there is more than simple Y patterns (two branches off a stem).
+// Find the most distal point within each 2nd order subbranch (collection) (assuming
+// the primary dendrite is the 1st order and each oblique that branches off that is
+// 2nd order, the collection is then all the processes connected to the distal end of the
+// 2nd order branch:scale gmax_ka to that subbranches distal point.
+// This method is in contrast to a method that assigns the
+// parameters of the single gmax_ka ramp based on the most distal dendritic
+// compartment of the entire cell.  With the new method there are
+// multiple gmax ramps, one for each branch off the main apical trunk.
+
+proc assign_relative_ka_underdev() {  // this method uses the absolute max's on the distal tips
+// of each dendrite to scale the gmax values on each branch.
+  print "Assigning ramps of I_A relative to each oblique sub-branch with scale ",scale_obliques
+  // ramp up I_A's gmax relative to each dendrite rather than along whole cell
+  finished = new SectionList() // start with an empty list of finished sections
+  for i=53,128 {  // loop through every oblique section
+
+    skip_if_finished = 0 // set to 1 if the current apic[i] had gmax_ka previously assigned
+    apic[i] ifsec finished { skip_if_finished = 1 }
+
+    if ( skip_if_finished ) {
+      // do not have to assign gbar_ka if current apic[i] was done earlier
+    } else {
+
+      // the basic procedure is to
+      // find dmax the farthest length out each 2nd order oblique dendrite
+      // group and then assign the gbar_ka based on that
+
+      apic[i] sr=new SectionRef()
+      sl = new SubBranch(sr)  // add all of apic[i]'s SubBranch to a SectionList
+                              // this procedure relies on the order of the index
+                              // in apic[i] having the lowest number always closest
+                              // to the primary dendrite.  That way when the SubBranch
+                              // class is initiated it finds the sections that are more
+                              // distal to it. (If there was a section apic[i] that was
+                              // the first element in this loop that was more distal to 
+                              // to the primary dendrite than the most proximal oblique
+                              // that actually would not cause a problem because when
+                              // the more proximal dendrites are calculated later the
+                              // same dmax should be found
+                              //  An alternative way to loop over this would be to find the
+                              // sections that make up all the starts of each oblique sub branch
+                              // and iterate over those.
+                              // Anyway, at this time sl.o contains all the sections to 
+                              // iterate over to find the dmax and dmin and then on
+                              // a second iteration assign all the gmax_ka's.  Finally
+                              // add the sections to the finished SectionList.
+      // diagnostic 2 lines of code: print " processing "
+      // sl.o.printnames()
+      dmax=0    // will hopefully grow from this number
+      dmin=1e6  // will hopefully shrink from this number
+      forsec sl.o {
+	for (x) if (x>0 && x<1) {
+	    xdist = distance(x)
+	    if ( xdist > dmax ) { dmax = xdist }
+	    if ( xdist < dmin ) { dmin = xdist }
+	}
+      }
+      // print "determined dmax to be ",dmax," and dmin to be ", dmin
+
+      slope_proximal = 0.03/100 // 0.06 is gmax from the orig formulas when KMULTP is 0.03
+                                // and xdist=100
+
+      forsec sl.o {
+	for (x) if (x>0 && x<1) { xdist = distance(x)
+               	ghdbar_hd(x) = ghd*(1+3*xdist/100)  //setting the h current same as Migliore
+        	if (xdist > 100){
+			vhalfl_hd=-81
+                        if (dmin>100) {
+                          gkabar_kad_old_start =  KMULT*(1+scale_ka*dmin/100)
+                          slope_distal = (gbar_ka_max-gkabar_kad_old_start)/(dmax-dmin)
+                 	  gkabar_kad(x) = gkabar_kad_old_start + scale_obliques*slope_distal * (xdist-dmin)
+                        } else {
+                          // the below provides for no discontinuities for obliques
+                          // that have points both < and > 100 microns from soma
+                          gkabar_kad_old_start =  KMULT*(1+100/100)
+                          slope_distal = (gbar_ka_max-gkabar_kad_old_start)/(dmax-100)
+               		  gkabar_kad(x) = gkabar_kad_old_start + scale_obliques*slope_distal * (xdist-100)
+                        }
+
+//               		gkabar_kad(x) = KMULT + slope_distal * xdist
+//               		gkabar_kad(x) = KMULT*(1+xdist/100) // Migliore method
+        	} else {
+			vhalfl_hd=-73
+               		gkabar_kap(x) = KMULTP + slope_proximal * xdist
+//               		gkabar_kap(x) = KMULTP*(1+xdist/100) // Migliore method
+        	}
+	}
+      }
+    } // end of if
+    forsec sl.o { finished.append() } // add the finished sections to the finished SectionList
+  }
+}

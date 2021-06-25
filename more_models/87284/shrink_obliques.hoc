@@ -1,0 +1,30 @@
+// shrink_obliques.hoc
+// shrink the obliques
+// restore the obliques
+// Honey, I shrunk the obliques.
+// This is in contrast to the inflate/deflate programs
+// which make recognizable on graphics of shape.  The
+// intention for this shrink program is to completly
+// remove electrically so that obliques can be examined
+// one at a time or entirely absent.  This diameter changing
+// has the advantage that it can be done while the program
+// is running unlike L length changes in dendrites which
+// require restart of the program?
+
+proc shrink_obliques() {
+	print "Honey, I shrunk the obliques"
+	apic_resize_factor=1e-9  // make a billionth as small
+	for apic_comp_index=53,128 {
+		// selects the obliques
+		apic_resize() // change all the diameters of the obliques
+	}
+}
+
+proc restore_obliques() {
+	print "Honey, the obliques have been restored"
+	apic_resize_factor=1e+9  // make a billionth as large
+	for apic_comp_index=53,128 {
+		// selects the obliques
+		apic_resize() // change all the diameters of the obliques
+	}
+}

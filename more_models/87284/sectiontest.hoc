@@ -1,0 +1,10 @@
+for i=53,128 {
+  sl.remove(sl)
+  apic[i] sl.children()
+  number=0
+  forsec sl { number +=1 }
+  if (number) {
+    apic[i] print "the ",number," children of ",secname()," are:"
+    sl.printnames()
+  }
+}

@@ -1,0 +1,31 @@
+objref fig4_graph
+
+objectvar save_window_, rvp_
+objectvar scene_vector_[13]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{
+save_window_ = new PlotShape(0)
+save_window_.size(-158.667,674.668,-384.633,288.872)
+save_window_.variable("vmax_ds")
+scene_vector_[8] = save_window_
+{save_window_.view(-158.667, -384.633, 833.334, 673.505, 873, 40, 312, 252.16)}
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(7.62939e-06,849.159,-80,40)
+scene_vector_[12] = save_window_
+{save_window_.view(7.62939e-06, -80, 849.159, 120, 465, 42, 378.24, 270.4)}
+flush_list.append(save_window_)
+save_window_.save_name("flush_list.")
+objectvar rvp_
+rvp_ = new RangeVarPlot("vmax_ds")
+apic[0] rvp_.begin(0)
+apic[43] rvp_.end(1)
+rvp_.origin(0)
+save_window_.addobject(rvp_, 2, 1, 0.8, 0.9)
+}
+objectvar scene_vector_[1]
+{doNotify()}
+
+fig4_graph=save_window_

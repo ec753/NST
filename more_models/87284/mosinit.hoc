@@ -1,0 +1,4 @@
+load_file("nrngui.hoc")
+// load this cell by default
+load_file("fig2A_c91662.hoc")
+load_file("paper_fig_buttons.hoc")

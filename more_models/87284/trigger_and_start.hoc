@@ -1,0 +1,11 @@
+objref make_go_file
+make_go_file=new File()
+
+// create go file in other simulation directory which triggers
+// that simulation to run (it has to have 
+// {xopen("wait_for_go.hoc") init() run() }
+// entered on the command line, then run here
+
+{ make_go_file.wopen("go") init() run() }
+
+// alternatively two cells could be created (healthy and abeta) and run in the same simulation.

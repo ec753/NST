@@ -1,0 +1,22 @@
+// na3_shifter.hoc
+
+xpanel("na3 shifter")
+  xlabel("sinf and taus parameters for the s state")
+  xpvalue("sinf V threshold",&sinf_vth_na3)
+  xpvalue("sinf min fraction",&sinf_min_na3)
+  xpvalue("sinf slope",&sinf_slope_na3)
+xpanel()
+xpanel("na3 tau")
+  xpvalue("taus V threshold",&taus_vth_na3)
+  xpvalue("taus slope",&taus_slope_na3)
+  xpvalue("taus min value",&taus_low_na3)
+  xbutton("graph kinetics","make_na3_graph()")
+xpanel()
+
+load_file("make_na3_graph.hoc")
+
+print "adjusting IClamp[0] and tstop"
+IClamp[0].del=20
+IClamp[0].dur=400
+IClamp[0].amp=0.25
+tstop=500

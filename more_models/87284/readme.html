@@ -1,0 +1,75 @@
+<html><pre>
+This is the readme for a model used in the paper
+<a href="http://www.frontiersin.org/neuroscience/neuralcircuits/paper/10.3389/fncir.2010.00016">
+Morse TM, Carnevale NT, Mutalik PG, Migliore M, Shepherd GM (2010)
+Abnormal excitability of oblique dendrites implicated in early
+Alzheimer's: a computational study Front. Neural Circuits 4:16
+</a>
+
+The model code was contributed by Tom Morse.  It was created (see
+paper for details) from earlier models (especially Migliore et
+al. 2005 and calcium channels from Hemond et al. 2008) with
+modifications and additions by Tom Morse and Ted Carnevale with
+interaction with the other authors. It requires the NEURON simulator
+to be installed (available at <a href="http://www.neuron.yale.edu">http://www.neuron.yale.edu</a>).
+
+To recreate figures from the paper, start the simulator by
+auto-launching from ModelDB *OR*
+
+Under unix systems:
+-------------------
+In the expanded archive's folder compile the mod files using the
+command "nrnivmodl"
+run the simulation with the command "nrngui mosinit.hoc"
+
+Under Windows systems:
+----------------------
+Compile the mod files using the "mknrndll" program.
+A double click on the simulation file
+mosinit.hoc
+will open the simulation window.
+
+Under MAC OS X:
+---------------
+drag and drop the expanded archive's folder onto the mknrndll icon.
+drag and drop the mosinit.hoc file onto the nrngui icon.
+
+Once the simulation is started click on a button to recreate a figure
+from the paper, e.g.:
+
+Figure 1,2 generates Figure 1B and 2 simultaneously:
+(the simulation part is Figure 1B right hand side traces):
+<img src="./fig1.jpg" alt="Figure 1B right hand side">
+
+Figure 2:
+<img src="./fig2.jpg" alt="Figure 2">
+
+Figure 3 (example):
+<img src="./fig3.jpg" alt="Figure 3">
+
+Figure 4:
+<img src="./fig4.jpg" alt="Figure 4">
+
+Figure 5:
+<img src="./fig5.jpg" alt="Figure 5">
+
+Figure 6b:
+<img src="./fig6b.jpg" alt="Figure 6b">
+
+Questions on how to use this model should be directed to tom.morse @
+yale.edu.
+
+References
+<a href="http://dx.doi.org/10.1016/j.bbrc.2005.10.169">
+Chen C (2005) beta-Amyloid increases dendritic Ca2+ influx by
+inhibiting the A-type K+ current in hippocampal CA1 pyramidal
+neurons. Biochem Biophys Res Commun 338:1913-9</a>
+
+<a href="http://jn.physiology.org/cgi/content/abstract/94/6/4145?etoc">Migliore M, Ferrante M, Ascoli GA (2005) 
+Signal propagation in oblique dendrites of CA1 pyramidal cells.
+J Neurophysiol 94:4145-4155</a> [<i><small><a href="http://senselab.med.yale.edu/ModelDB/ShowModel.asp?model=55035">Model</a></small></i>]
+
+<a href="http://www3.interscience.wiley.com/journal/117884448/abstract?CRETRY=1&SRETRY=0">Hemond P, Epstein D, Boley A, Migliore M, Ascoli GA, Jaffe DB (2008)
+Distinct classes of pyramidal cells exhibit mutually exclusive firing
+patterns in hippocampal area CA3b Hippocampus 18(4):411-24</a> [<i><small><a href="http://senselab.med.yale.edu/ModelDB/ShowModel.asp?model=101629">Model</a></small></i>]
+</pre></html>

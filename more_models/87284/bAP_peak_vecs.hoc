@@ -1,0 +1,127 @@
+// bAP_peak_vecs.hoc
+// All that needs to be done to prepare the vecs for graphs
+// of bAP peak vs distance is to store the x=0 to 1 vectors
+// for each section
+// The general strategy is to create as many vector pairs as
+// are required to store the bAP peaks in the oblique subtrees
+// For continuity these vectors contain as their first point the
+// connecting point on previous dend.
+
+num_obliques=128-53+1 // number of obliques in 91662
+objref ob_dist_vec[num_obliques],ob_peak_vec[num_obliques]
+objref ob_peak_ca_vec[num_obliques], ob_peak_optical_vec[num_obliques]
+// the above two vec arrays store the peak calcium and the peak
+// optical which is defined as the peak (F(t)-F_rest)/F_rest which in the linear
+// aproximation of the flourescent molecule Ca binding is proportional to [Ca2+]i
+// so peak optical= ([Ca2+]i,peak - [Ca2+]i,resting)/[Ca2+]i,resting
+
+/*for i=0, num_obliques-1 {
+  ob_dist_vec[i] = new Vector()
+  ob_peak_vec[i] = new Vector()
+}
+*/
+objref sect_list_2getparent
+
+proc assign_dist_peak_vecs() {
+  for i=0, num_obliques-1 {
+    ob_dist_vec[i] = new Vector()
+    ob_peak_vec[i] = new Vector()
+    ob_peak_ca_vec[i] = new Vector()
+    ob_peak_optical_vec[i] = new Vector()
+    // the following adds the distance and peak bAP from
+    // the last point of the parent 
+    apic[i+53] sect_list_2getparent = new SectionRef()
+    sect_list_2getparent.parent {
+      x=0.5*((nseg-1)/nseg+1) // finds last relative (0-1) point on parent
+      xdist=distance(x)
+      ob_dist_vec[i].append(xdist)
+      ob_peak_vec[i].append(vmax_ds(x)-Vrest)
+      ob_peak_ca_vec[i].append(cmax_cacum(x))
+      ob_peak_optical_vec[i].append((cmax_cacum(x)-cai0_cacum(x))/cai0_cacum(x))
+    }
+    // now add all the distance and bAP peaks from the oblique section
+    apic[i+53] for (x,0) {
+      xdist = distance(x)
+      ob_dist_vec[i].append(xdist)
+      ob_peak_vec[i].append(vmax_ds(x)-Vrest)
+      ob_peak_ca_vec[i].append(cmax_cacum(x))
+      ob_peak_optical_vec[i].append((cmax_cacum(x)-cai0_cacum(x))/cai0_cacum(x))
+      }
+  }
+}
+
+
+proc graph_dist_peak_vecs() {
+      if (marker_graph) {
+       for i=0, num_obliques-1 {
+         ob_peak_vec[i].mark(d,ob_dist_vec[i],current_marker_style,current_marker_size+1,current_marker_color-alzheimers_flag,2)
+         ob_peak_ca_vec[i].mark(peak_ca_graph,ob_dist_vec[i],current_marker_style,current_marker_size+1,current_marker_color-alzheimers_flag,2)
+         ob_peak_optical_vec[i].mark(peak_optical_graph,ob_dist_vec[i],current_marker_style,current_marker_size+1,current_marker_color-alzheimers_flag,2)
+       }
+       primaryy.mark(d,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+       primaryca.mark(peak_ca_graph,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+       primaryoptical.mark(peak_optical_graph,primaryx,"s",current_marker_size+1,7+alzheimers_flag,2)
+       tufty.mark(d,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+       tuftca.mark(peak_ca_graph,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+       tuftoptical.mark(peak_optical_graph,tuftx,"t",current_marker_size+1,4+alzheimers_flag,2)
+      }
+      if (line_graph) {
+         // if line graph then make line graphs for bAPs if abeta (alzheimers_flag) shift color
+         for i=0, num_obliques-1 {
+            color_choice=1+alzheimers_flag // black or red if abeta present
+            ob_peak_vec[i].line(d,ob_dist_vec[i], color_choice,1)
+            ob_peak_ca_vec[i].line(peak_ca_graph,ob_dist_vec[i], color_choice,1)
+            ob_peak_optical_vec[i].line(peak_optical_graph,ob_dist_vec[i], color_choice,1)
+         }
+         // the primary is a special case where there are no branches and
+         // only apic[25] has nseg different than 1
+         tmp_vecx=new Vector()
+         tmp_vecy=new Vector()
+         forsec primary {
+            color_choice=7+alzheimers_flag // purple or yellow if abeta present
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			tmp_vecx.append(distance(x)) 
+			tmp_vecy.append(vmax_ds(x)-Vrest)
+			}
+		}
+         }
+         tmp_vecy.line(d,tmp_vecx, color_choice,4)
+         forsec tuft {
+            color_choice=4+alzheimers_flag //  if abeta present
+            tmp_vecx=new Vector()
+            tmp_vecy=new Vector()
+		for (x) if (x>0 && x<1) {
+			if (diam>=0.) {
+			tmp_vecx.append(distance(x)) 
+			tmp_vecy.append(vmax_ds(x)-Vrest)
+			}
+		}
+            tmp_vecy.line(d,tmp_vecx, color_choice,1)
+         }
+      }
+      // for model to Chen statistics comparison:
+      chen_c_bpAP_peaks=new Vector() // apic[15] through 19 have middles
+
+	// within Chen C 2005 range of 240-300 ums.  It was found by hand that these
+	// compartments apic[15 through 19] correspond to the primary dendrite, the likely
+	// source of Chen C's electrical recordings.
+	/* oc>for i=14,19 {apic[i] print secname(),.5,distance(.5),v }
+	apic[14]0.5 233.72056 -46.048939
+	apic[15]0.5 253.83815 -41.003093
+	apic[16]0.5 264.45777 -38.230327
+	apic[17]0.5 276.62687 -34.690309
+	apic[18]0.5 284.63212 -32.181721
+	apic[19]0.5 295.92992 -28.539688
+	oc>
+	*/
+
+	for i=15,19 {
+		apic[i] chen_c_bpAP_peaks.append(vmax_ds(0.5)-Vrest)
+	}
+	soma chen_c_bpAP_soma_peak=vmax_ds(0.5)-Vrest
+//	c.flush()
+	doNotify()
+}
+
+

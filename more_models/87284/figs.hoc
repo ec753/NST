@@ -1,0 +1,444 @@
+// figs.hoc
+// contains functions to create figures for Dendritic Hypothesis paper
+
+
+// on all dendrites within 240-300 um's from the soma:
+proc compare_bpAPs() {
+  // first make sure in healthy state
+  if (alzheimers_flag) { remove_aBeta() }
+  // run model
+  runm()
+  // store bpAP peaks in healthy_bpAPs
+  healthy_bpAPs = distry.c
+  // apply aBeta
+  apply_aBeta()
+  // re-run the model
+  runm()
+  // store bpAP peaks in aBeta_bpAPs
+  aBeta_bpAPs = distry.c
+  // calculate percent increase as 100*(aBeta-healthy)/healthy
+  percent_increase = aBeta_bpAPs.c.sub(healthy_bpAPs).div(healthy_bpAPs).mul(100)
+  // percent_increase values correspond to distance from soma stored in distrx
+
+  // print average and standard deviation for between 240 and 300 micrometer
+  experiment_indicies = new Vector()
+  experiment_indicies.indvwhere(distrx, "()", 240, 300)
+
+  per_inc_between_240_300 = new Vector()
+  x_between_240_300 = new Vector()
+  for i=0, experiment_indicies.size()-1 {
+      per_inc_between_240_300.append(percent_increase.x[experiment_indicies.x[i]])
+      x_between_240_300.append(distrx.x[experiment_indicies.x[i]])
+  }
+  average=per_inc_between_240_300.mean()
+  stdev = per_inc_between_240_300.stdev()
+  print "Between 240 and 300 microns along apical dendrite: average bpAP percent increase=",\
+         average, ", SD=", stdev
+
+  // graph percentage increase as a function of distance to see what is predicted for
+  // regions whose measurements were not reported in Chen C.
+
+  objref g1
+  g1 = new Graph()
+  percent_increase.mark(g1,distrx,"+",3,3,2)
+  for i=0, experiment_indicies.size()-1 {
+	per_inc_between_240_300.mark(g1,x_between_240_300,"O",3,2,2)  
+  }
+}
+
+// compare just on the primary dendrite:
+proc compare_primary_bpAPs() {
+  // first make sure in healthy state
+  if (alzheimers_flag) { remove_aBeta() }
+  // run model
+  runm()
+  // store bpAP peaks in healthy_bpAPs
+  healthy_bpAPs = chen_c_bpAP_peaks.c
+  healthy_chen_c_bpAP_soma_peak = chen_c_bpAP_soma_peak
+  // apply aBeta
+  apply_aBeta()
+  // re-run the model
+  runm()
+  // store bpAP peaks in aBeta_bpAPs
+  aBeta_bpAPs = chen_c_bpAP_peaks.c
+  aBeta_chen_c_bpAP_soma_peak = chen_c_bpAP_soma_peak
+  // calculate percent increase as 100*(aBeta-healthy)/healthy
+  percent_increase = aBeta_bpAPs.c.sub(healthy_bpAPs).div(healthy_bpAPs).mul(100)
+  // percent_increase values correspond to distance from soma stored in distrx
+
+  // print average and standard deviation for between 240 and 300 micrometer
+  average=percent_increase.mean()
+  stdev = percent_increase.stdev()
+  print "aBeta compared to healthy:"
+  print "Between 240 and 300 microns along apical (primary) dendrite: average bpAP percent increase=",\
+         average, ", SD=", stdev
+
+  soma_percent_increase=100* \
+  (aBeta_chen_c_bpAP_soma_peak-healthy_chen_c_bpAP_soma_peak)/healthy_chen_c_bpAP_soma_peak
+  print "percent increase in the soma = ",soma_percent_increase," %"
+}
+
+objref healthy_soma_v, aBeta_soma_v
+objref healthy_dend_v, aBeta_dend_v
+objref t_vec, g2, g3, g4, healthy_t
+objref scale_bar_v, scale_bar_t
+objref ip
+objref cntrl_lines_t, cntrl_lines_v
+objref aBeta_lines_t, aBeta_lines_v
+
+proc ChenCfig2A_withdoublescale() {
+  // (The problem with this procedure is that in Chen 2005 the
+  // scales in fig2A look like one is half the other however the
+  // the 1/2 scale one is maybe 5/6th less than half the scale.
+  // To make similar figure to Chen C 2005 fig 2 A
+  // 1) run the healthy cell and store a soma and dend. voltage trajectories
+  // 2) run aBeta cell and store the soma and dend. voltage trajectories
+  // 3) graph the voltage trajectories displaced in space similarly to how
+  //    Chen displaces them
+  // One possible reason why the voltage trajectories are different looking (Chen's
+  // voltage trajectories see to settle at higher values than the Model's) maybe due
+  // to the way the model is stimulated with current clamp and the Chen experimental
+  // cell is stimulated with an antidromic AP from the axon fibers.
+  remove_aBeta()
+  t_vec = new Vector()
+  t_vec.record(&t)
+  runm()
+  healthy_soma_v = soma_v_vec.c
+  healthy_dend_v = dend_v_vec.c
+  healthy_t = t_vec.c
+
+  apply_aBeta()
+//  set_concentration()  // use to set a fraction of aBeta block
+  soma_v_vec.resize(0)
+  dend_v_vec.resize(0)
+  t_vec.resize(0)
+  runm()
+
+  aBeta_soma_v = soma_v_vec.c
+  aBeta_dend_v = dend_v_vec.c
+  g2 = new Graph()
+  // g2 is the ChenCfig2 like graph
+  // the voltages are multiplied by two to match
+  // the scale bar in Chen 2005 where the dendrite
+  // traces are also multiplied by two.
+  // dend_offset brings the traces back into correspondance
+  // with the non-multiplied traces
+  healthy_soma_v.line(g2,healthy_t)
+  dend_offset = aBeta_dend_v.min()
+  healthy_dend_v.c.mul(2).sub(dend_offset).line(g2,healthy_t.c.add(50))
+  aBeta_soma_v.c.line(g2,t_vec.c.add(7.5))
+  aBeta_dend_v.c.mul(2).sub(dend_offset).line(g2,t_vec.c.add(57.5))
+
+  scale_bar_v = new Vector()
+  scale_bar_t = new Vector()
+  scale_bar_v.append(-60, -80, -80)
+  scale_bar_t.append(31, 31, 41)
+  scale_bar_v.line(g2,scale_bar_t)
+  scale_bar_v.line(g2,scale_bar_t.c.add(49))
+  g2.label(0.39,.13,"20 mV")
+  g2.label(0.39,0.1,"10 ms")
+  g2.label(0.84,.13,"10 mV")
+  g2.label(0.84,0.1,"10 ms")
+  g2.label(.37,.4,"Control")
+  g2.label(0.37,.72,"aBeta")
+  g2.xaxis(3) // causes x axis to disappear
+  g2.yaxis(3) // causes y axis to disappear
+  g2.exec_menu("View = plot")
+
+  cntrl_lines_t = new Vector(4)
+  cntrl_lines_v = new Vector(4, -18)
+
+  cntrl_lines_t.x[0]=3
+  cntrl_lines_t.x[1]=30
+  cntrl_lines_v.c(0,1).line(g2,cntrl_lines_t.c(0,1))
+  cntrl_lines_t.x[2]=039
+  cntrl_lines_t.x[3]=051
+  cntrl_lines_v.c(2,3).line(g2,cntrl_lines_t.c(2,3))
+
+  aBeta_lines_t = new Vector(4)
+  aBeta_lines_v = new Vector(4,43.5)
+
+  aBeta_lines_t.x[0]=10
+  aBeta_lines_t.x[1]=30
+  aBeta_lines_v.c(0,1).line(g2,aBeta_lines_t.c(0,1))
+  aBeta_lines_t.x[2]=38
+  aBeta_lines_t.x[3]=59
+  aBeta_lines_v.c(2,3).line(g2,aBeta_lines_t.c(2,3))
+
+}
+
+proc ChenCfig2A() {
+  // to make similar figure to Chen C 2005 fig 2 A
+  // 1) run the healthy cell and store a soma and dend. voltage trajectories
+  // 2) run aBeta cell and store the soma and dend. voltage trajectories
+  // 3) graph the voltage trajectories displaced in space similarly to how
+  //    Chen displaces them
+  // One possible reason why the voltage trajectories are different looking (Chen's
+  // voltage trajectories see to settle at higher values than the Model's) maybe due
+  // to the way the model is stimulated with current clamp and the Chen experimental
+  // cell is stimulated with an antidromic AP from the axon fibers.
+  remove_aBeta()
+  t_vec = new Vector()
+  t_vec.record(&t)
+  runm()
+  healthy_soma_v = soma_v_vec.c
+  healthy_dend_v = dend_v_vec.c
+  healthy_t = t_vec.c
+  healthy_obdend_v_vec = obdend_v_vec.c
+  // print "1) there are ",obdend_v_vec.size(), " elements in obdend_v_vec"
+//  apply_aBeta()
+  set_concentration()  // use to set a fraction of aBeta block
+  soma_v_vec.resize(0)
+  dend_v_vec.resize(0)
+  obdend_v_vec.resize(0)
+  t_vec.resize(0)
+  runm()
+  // print "2) there are ",obdend_v_vec.size(), " elements in obdend_v_vec" // vectors different sizes 'cause cvode dt
+
+  aBeta_soma_v = soma_v_vec.c
+  aBeta_dend_v = dend_v_vec.c
+  abeta_obdend_v_vec = obdend_v_vec.c
+
+  g2 = new Graph(0)
+  // g2 is the ChenCfig2 like graph
+  // the voltages are multiplied by two to match
+  // the scale bar in Chen 2005 where the dendrite
+  // traces are also multiplied by two.
+  // dend_offset brings the traces back into correspondance
+  // with the non-multiplied traces
+  healthy_soma_v.line(g2,healthy_t)
+  dend_offset = aBeta_dend_v.min()
+ // healthy_dend_v.c.mul(2).sub(dend_offset).line(g2,healthy_t.c.add(50))
+  healthy_dend_v.c.mul(1).sub(0).line(g2,healthy_t.c.add(50))
+  aBeta_soma_v.c.line(g2,t_vec.c.add(7.5),2,1)
+//  aBeta_dend_v.c.mul(2).sub(dend_offset).line(g2,t_vec.c.add(57.5))
+  aBeta_dend_v.c.mul(1).sub(0).line(g2,t_vec.c.add(57.8),2,1)
+
+  healthy_obdend_v_vec.line(g2,healthy_t.c.add(100))
+  abeta_obdend_v_vec.line(g2,t_vec.c.add(107.8),2,1)  // makes red
+
+  scale_bar_v = new Vector()
+  scale_bar_t = new Vector()
+  scale_bar_v.append(-60, -80, -80)
+  scale_bar_t.append(31, 31, 41)
+  scale_bar_v.line(g2,scale_bar_t)
+//  scale_bar_v.line(g2,scale_bar_t.c.add(49))
+  g2.label(0.39,.13,"20 mV")
+  g2.label(0.39,0.1,"10 ms")
+//  g2.label(0.84,.13,"10 mV")
+//  g2.label(0.84,0.1,"10 ms")
+  g2.label(.37,.82,"Control")
+  g2.label(50,20,"aBeta",1,1,0,0,2)
+
+  g2.xaxis(3) // causes x axis to disappear
+  g2.yaxis(3) // causes y axis to disappear
+  g2.view(-10, -65, 850, 96, 100, 500, 300, 300)
+  g2.exec_menu("View = plot")
+/*  cntrl_lines_t = new Vector(4)
+  cntrl_lines_v = new Vector(4, -18)
+  cntrl_lines_t.x[0]=3
+  cntrl_lines_t.x[1]=30
+  cntrl_lines_v.c(0,1).line(g2,cntrl_lines_t.c(0,1))
+  cntrl_lines_t.x[2]=039
+  cntrl_lines_t.x[3]=051
+  cntrl_lines_v.c(2,3).line(g2,cntrl_lines_t.c(2,3))
+
+  aBeta_lines_t = new Vector(4)
+  aBeta_lines_v = new Vector(4,43.5)
+  aBeta_lines_t.x[0]=10
+  aBeta_lines_t.x[1]=30
+  aBeta_lines_v.c(0,1).line(g2,aBeta_lines_t.c(0,1))
+  aBeta_lines_t.x[2]=38
+  aBeta_lines_t.x[3]=59
+  aBeta_lines_v.c(2,3).line(g2,aBeta_lines_t.c(2,3))
+*/
+}
+
+proc ObliqueAPgraph() {
+  print "Generating oblique APs in before and after ABeta application"
+  // to make figure comparing the control to the aBeta applied APs in an oblique dendrite.
+  // 1) run the healthy cell and store an oblique dend. voltage trajectory
+  // 2) run aBeta cell and store the same oblique dend, voltage trajectory
+  // 3) graph the voltage trajectories compared to each other
+  remove_aBeta()
+  t_vec = new Vector()
+  t_vec.record(&t)
+  runm()
+  healthy_obdend_v_vec = obdend_v_vec.c
+  healthy_t = t_vec.c
+
+//  apply_aBeta()
+  set_concentration()  // use to set a fraction of aBeta block
+  soma_v_vec.resize(0)
+  dend_v_vec.resize(0)
+  obdend_v_vec.resize(0)
+  t_vec.resize(0)
+
+  runm()
+  abeta_obdend_v_vec = obdend_v_vec.c
+
+//  aBeta_soma_v = soma_v_vec.c
+//  aBeta_dend_v = dend_v_vec.c
+  g4 = new Graph(0)
+  // g4 is the oblique before and after abeta graph
+  healthy_obdend_v_vec.line(g4,healthy_t)
+  abeta_obdend_v_vec.line(g4,t_vec,2,1)  // makes red
+  g4.view(-10, -65, 850, 96, 130, 530, 300, 300)
+  g4.exec_menu("View = plot")
+}
+
+proc ChenCfig2CD() {
+  // to make similar figure to Chen C 2005 fig 2
+  // 1) run the healthy cell and store a soma and dend. voltage trajectories
+  // 2) run aBeta cell and store the soma and dend. voltage trajectories
+  // 3) graph the voltage trajectories displaced in space similarly to how
+  //    Chen displaces them
+  // One possible reason why the voltage trajectories are different looking (Chen's
+  // voltage trajectories seem to settle at higher values than the Model's) maybe due
+  // to the way the model is stimulated with current clamp and the Chen experimental
+  // cell is stimulated with an antidromic AP from the axon fibers.
+  // Another huge difference is that the real cell has putative inactivating Na channels
+  // in the dendrites while the model cell does not.
+  soma ip=new Ipulse2(0.5)
+  ip.del=21  // there is already a 2.5 nA pulse at time 1 ms for 1.5 ms
+  ip.dur=1.5 
+  ip.per=20 // the period or length of time between pulses
+  ip.num=4 // says 4 but five total including the IClamp one at t=1 ms
+  ip.amp=2.5
+  tstop=140
+  remove_aBeta()
+  t_vec = new Vector()
+  t_vec.record(&t)
+  runm()
+  healthy_soma_v = soma_v_vec.c
+  healthy_dend_v = dend_v_vec.c
+  healthy_t = t_vec.c
+
+  apply_aBeta()
+  soma_v_vec.resize(0)
+  dend_v_vec.resize(0)
+  t_vec.resize(0)
+  runm()
+
+  aBeta_soma_v = soma_v_vec.c
+  aBeta_dend_v = dend_v_vec.c
+  g3 = new Graph()
+  // g3 is the ChenCfig2cd like graph
+  healthy_soma_v.line(g3,healthy_t)
+  healthy_dend_v.line(g3,healthy_t.c.add(160))
+  aBeta_soma_v.line(g3,t_vec.c.add(10))
+  aBeta_dend_v.line(g3,t_vec.c.add(170))
+
+  scale_bar_v = new Vector()
+  scale_bar_t = new Vector()
+  scale_bar_v.append(-60, -80, -80)
+  scale_bar_t.append(155, 155, 165)
+  scale_bar_v.line(g3,scale_bar_t)
+  g3.label(0.39,.13,"20 mV")
+  g3.label(0.47,0.045,"10 ms")
+  g3.label(.41,.3,"Control")
+  g3.label(0.43,.55,"aBeta")
+  g3.xaxis(3) // causes x axis to disappear
+  g3.yaxis(3) // causes y axis to disappear
+  g3.exec_menu("View = plot")
+}
+
+proc fig5obliques() {
+  // plot bpAP peak heights in normal and with aBeta applied to the obliques
+  // first plot aBeta in obliques, then normal on top of that
+  current_marker_size=5    // big
+  current_marker_style="o" // circles
+  current_marker_color=2   // red for aBeta applied
+  remove_aBeta()
+  apply_obliques_aBeta()
+  d.exec_menu("Erase")
+  runm()
+
+  current_marker_size=3    // little
+  current_marker_style="O" // disks (captialized means filled)
+  current_marker_color=3   // blue for healthy
+  remove_aBeta()
+  runm()
+  d.label(0.35, 0.95, "bpAP peaks in healthy and with 100 uM aBeta applied to the obliques")
+}
+
+proc fig5basal() {
+  // plot bpAP peak heights in normal and with aBeta applied to the basal dends.
+  // first plot aBeta in basal, then normal on top of that
+  current_marker_size=5    // big
+  current_marker_style="o" // circles
+  current_marker_color=2   // red for aBeta applied
+  remove_aBeta()
+  apply_basal_aBeta()
+  d.exec_menu("Erase")
+  runm()
+
+  current_marker_size=3    // little
+  current_marker_style="O" // disks (captialized means filled)
+  current_marker_color=3   // blue for healthy
+  remove_aBeta()
+  runm()
+  d.label(0.35, 0.95, "bpAP peaks in healthy and with 100 uM aBeta applied to the basal dendrites")
+}
+
+
+
+proc fig5primary() {
+  // plot bpAP peak heights in normal and with aBeta applied to the primary dends.
+  // first plot aBeta in primary, then normal on top of that
+  current_marker_size=5    // big
+  current_marker_style="o" // circles
+  current_marker_color=2   // red for aBeta applied
+  remove_aBeta()
+  apply_primary_aBeta()
+  d.exec_menu("Erase")
+  runm()
+
+  current_marker_size=3    // little
+  current_marker_style="O" // disks (captialized means filled)
+  current_marker_color=3   // blue for healthy
+  remove_aBeta()
+  runm()
+  d.label(0.35, 0.95, "bpAP peaks in healthy and with 100 uM aBeta applied to the primary dendrite")
+}
+
+
+proc fig5tuft() {
+  // plot bpAP peak heights in normal and with aBeta applied to the tuft dends.
+  // first plot aBeta in tuft, then normal on top of that
+  current_marker_size=5    // big
+  current_marker_style="o" // circles
+  current_marker_color=2   // red for aBeta applied
+  remove_aBeta()
+  apply_tuft_aBeta()
+  d.exec_menu("Erase")
+  runm()
+
+  current_marker_size=3    // little
+  current_marker_style="O" // disks (captialized means filled)
+  current_marker_color=3   // blue for healthy
+  remove_aBeta()
+  runm()
+  d.label(0.35, 0.95, "bpAP peaks in healthy and with 100 uM aBeta applied to the tuft dendrites")
+}
+
+// execute time_of_peaks() to see how the times in which the voltage
+// peaks in the apical dendrites are shifted to earlier times for more
+// proximal dendrites and later times for more distal dendrites when
+// abeta is applied to a normal (model) cell.
+
+proc time_of_peaks() {
+  remove_aBeta()
+  runm()
+  g1 = new Graph() // available obj
+  distrt.mark(g1,distrx,"o") // plot normal with circles then switch to
+  apply_aBeta()
+  print "half way done ... please wait"
+  runm()
+  distrt.mark(g1,distrx) // x's for pathology to see diff
+  g1.label(.3,.95,"Time of peak vs distance from soma in apical dend")
+  g1.label(0.42,0.02,"distance from soma")
+  g1.label(0.03,0.93,"time of peak V")
+  g1.label(0.8,0.15,"normal o, abeta +")
+  g1.exec_menu("View = plot")
+}

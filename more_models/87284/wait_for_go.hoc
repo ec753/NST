@@ -1,0 +1,19 @@
+// wait_for_go.hoc
+// waits for a file called go and then continues
+// This file is handy for creating a movie of simulataneous
+// running simulations.
+
+objref go_file
+
+proc wait_for_go() {
+
+  go_file=new File()
+
+  exists=go_file.ropen("go")
+
+  while (!exists) {
+    exists=go_file.ropen("go")
+  }
+
+}
+wait_for_go()
